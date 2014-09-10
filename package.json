@@ -1,0 +1,28 @@
+{
+  "name": "amabla-core",
+  "description": "Amabla core components",
+  "version": "0.0.1",
+  "keywords": [
+    "amabla",
+    "utils",
+    "core"
+  ],
+  "homepage": "http://www.elao.com",
+  "repository": {
+    "type": "git",
+    "url": "git://git.elao.fr:amabla/amabla-core.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Elao",
+    "email": "contact@elao.com",
+    "url": "http://github.com/elao/"
+  },
+  "dependencies": {
+      "bluebird": "^2.0"
+  },
+  "main": "./js/main.js",
+  "files": [
+    "js/main"
+  ]
+}

@@ -23,6 +23,7 @@
   },
   "main": "./js/main.js",
   "files": [
-    "js/main"
+    "js/components",
+    "js/main.js"
   ]
 }

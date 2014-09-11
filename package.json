@@ -19,7 +19,10 @@
     "url": "http://github.com/elao/"
   },
   "dependencies": {
-      "bluebird": "^2.0"
+      "bluebird": "^2.0",
+      "http-auth": "^2.1.9",
+      "request" : "^2.39.0",
+      "underscore": "^1.6.0"
   },
   "main": "./js/main.js",
   "files": [

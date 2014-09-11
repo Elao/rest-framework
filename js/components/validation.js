@@ -2,9 +2,9 @@ module.exports = function () {
     return new Validation();
 }
 
-var Promise     = require('bluebird'),
-    util        = require('util'),
-    _           = require('underscore');
+var Promise = require('bluebird'),
+    util    = require('util'),
+    _       = require('underscore');
 
 /**
  * Validation service

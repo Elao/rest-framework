@@ -17,6 +17,7 @@ function Security(oauth, settings) {
     this.oauth    = oauth;
     this.settings = settings;
     this.rules    = settings.rules;
+    return this;
 }
 
 Security.prototype.getSecurityMiddleware = function(rule) {

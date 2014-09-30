@@ -5,6 +5,7 @@ module.exports = function(app, security, validation, settings) {
 var _          = require('underscore'),
     changeCase = require('change-case');
 
+
 var Routing = function(app, security, validation, settings) {
     this.app          = app;
     this.security     = security;
@@ -18,7 +19,11 @@ var Routing = function(app, security, validation, settings) {
 }
 
 Routing.prototype.loadController = function(name, config) {
-    this.controllers[(name.toLowerCase())] = require(process.cwd() + '/'+ this.settings.pathControllers + '/' + name)(this.app, config);
+
+    var controller = require(process.cwd() + '/'+ this.settings.pathControllers + '/' + name)(this.app, config);
+    this.controllers[(name.toLowerCase())] = controller;
+    
+    return controller;
 }
 
 Routing.prototype.resolveControllerValidation = function(controllerName) {
@@ -68,14 +73,25 @@ Routing.prototype.loadRoute = function(method, route, security, controller, vali
         args.push(controller);
     } else {
         var methods = this.resolveControllerValidation(controller);
-
+        args.push(this.featuresMiddleware(methods['controller']));
+        /*
         if (_.isFunction(methods.validation)) {
             console.log("Loading validation components");
             args.push(this.validation.getValidationMiddleware(methods.validation));
         }
+        */
         args.push(methods['action'].apply(methods['controller'], []));
     }
     m.apply(this.app, args);
 
     return this;
+}
+
+Routing.prototype.featuresMiddleware = function(controller) {
+    return function(req, res, next) {
+        controller.generateUrl = function(path) {
+            return req.generateUrl(path)
+        };
+        next();
+    }
 }

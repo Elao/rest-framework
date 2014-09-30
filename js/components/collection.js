@@ -1,26 +1,26 @@
-module.exports = function(baseUrl) {
-    return new Collection(baseUrl);
+module.exports = function() {
+    return new Collection();
 }
 
 var Promise = require('bluebird'),
     _       = require('underscore'),
     url     = require('url');
 
-Collection = function(baseUrl) {
-    this.baseUrl = baseUrl;
+Collection = function() {
 }
 
 Collection.prototype.resolvePagination = function(req, count) {
     return new Promise(function(resolve, reject) {
-        var page    = req.query.page;
-        var limit   = req.query.limit;
-
-        if (!_.isNumber(page)) {
+        var page    = parseInt(req.query.page);
+        var limit   = parseInt(req.query.limit);
+        
+        if (isNaN(page) || !_.isNumber(page)) {
             page = 1;
         }
-        if (!_.isNumber(limit)) {
+        if (isNaN(limit)|| !_.isNumber(limit)) {
             limit = 10;
         }
+
 
         limit = Math.max(limit, 1);
         var maxPage = Math.max(Math.ceil(count / limit), 1);

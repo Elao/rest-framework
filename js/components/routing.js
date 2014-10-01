@@ -22,7 +22,7 @@ Routing.prototype.loadController = function(name, config) {
 
     var controller = require(process.cwd() + '/'+ this.settings.pathControllers + '/' + name)(this.app, config);
     this.controllers[(name.toLowerCase())] = controller;
-    
+
     return controller;
 }
 
@@ -75,11 +75,11 @@ Routing.prototype.loadRoute = function(method, route, security, controller, vali
         var methods = this.resolveControllerValidation(controller);
         args.push(this.featuresMiddleware(methods['controller']));
         /*
-        if (_.isFunction(methods.validation)) {
-            console.log("Loading validation components");
-            args.push(this.validation.getValidationMiddleware(methods.validation));
-        }
-        */
+         if (_.isFunction(methods.validation)) {
+         console.log("Loading validation components");
+         args.push(this.validation.getValidationMiddleware(methods.validation));
+         }
+         */
         args.push(methods['action'].apply(methods['controller'], []));
     }
     m.apply(this.app, args);
@@ -89,8 +89,9 @@ Routing.prototype.loadRoute = function(method, route, security, controller, vali
 
 Routing.prototype.featuresMiddleware = function(controller) {
     return function(req, res, next) {
+        console.log("add method generateUrl to controller")
         controller.generateUrl = function(path) {
-            return req.generateUrl(path)
+            return req.protocol + '://' + req.get('host') + path;
         };
         next();
     }

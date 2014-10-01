@@ -19,13 +19,4 @@ module.exports = {
             next();
         }
     },
-
-    generateUrl: function(req, res, next) {
-
-        req.generateUrl = function(path) {
-            return req.protocol + '://' + req.get('host') + path;
-        }
-
-        next();
-    }
 }

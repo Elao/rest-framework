@@ -39,6 +39,8 @@ Security.prototype.getSecurityMiddleware = function(rule) {
         if (_.contains(methods, 'oauth')) {
 
             if (self.oauth == null) {
+                var oAuthAccessToken = "";
+
                 var reg = new RegExp("^bearer ");
                 var authorization = req.headers.authorization;
                 if (authorization && reg.test(authorization.toLowerCase())) {
@@ -56,7 +58,7 @@ Security.prototype.getSecurityMiddleware = function(rule) {
                             auth: {
                                 bearer: oAuthAccessToken
                             }
-                        }, function(error, response, body) { 
+                        }, function(error, response, body) {
                             if (!error && response.statusCode == 200) {
 
                                 req.user = JSON.parse(response.body);

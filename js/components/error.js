@@ -10,6 +10,11 @@ module.exports = function(config) {
 
 handler = function(config) {
     this.config = config;
+
+    this.NotFoundError.prototype = Object.create(Error.prototype);
+    this.AccessDeniedError.prototype = Object.create(Error.prototype);
+    this.MissingParametersError.prototype = Object.create(Error.prototype);
+
     return this;
 }
 
@@ -38,6 +43,10 @@ handler.prototype.handleError = function(e, req, res, next) {
             case 'NotFoundError':
                 return res.status(404).json(errorDisplayed);
                 break;
+
+            case 'MissingParametersError':
+                return res.status(400).json(errorDisplayed);
+                break;
             case 'AccessDeniedError':
                 return res.status(403).json(errorDisplayed);
                 break;
@@ -48,7 +57,7 @@ handler.prototype.handleError = function(e, req, res, next) {
             return res.status(e.statusCode).json(errorDisplayed);
         }
 
-    // bad use of amabla-core
+        // bad use of amabla-core
     } else if (_.isString(e)) {
         return res.status(500).json({error: e});
     }
@@ -58,7 +67,8 @@ handler.prototype.handleError = function(e, req, res, next) {
 
 handler.prototype.NotFoundError = function(message, type, id)
 {
-    var self = new Error();
+    var self = this;
+
     self.type = type;
     self.message = "NOT_FOUND";
     self.item_id = id;
@@ -71,14 +81,14 @@ handler.prototype.NotFoundError = function(message, type, id)
     }
 
     self.name = 'NotFoundError';
-    self._proto_ = handler.prototype;
+    Error.captureStackTrace(this, handler.prototype.NotFoundError);
     return self;
 }
 
 
 handler.prototype.AccessDeniedError = function(message, reason)
 {
-    var self = new Error();
+    var self = this;
 
     self.message = "NOT_ALLOWED";
     if (message != "") {
@@ -90,14 +100,14 @@ handler.prototype.AccessDeniedError = function(message, reason)
     }
 
     self.name = 'AccessDeniedError';
-    self._proto_ = handler.prototype;
+    Error.captureStackTrace(this, handler.prototype.AccessDeniedError);
     return self;
 }
 
 
 handler.prototype.MissingParametersError = function(message, fields)
 {
-    var self = new Error();
+    var self = this;
 
     self.message = "MISSING_PARAMETERS";
     if (message != "") {
@@ -109,6 +119,7 @@ handler.prototype.MissingParametersError = function(message, fields)
     }
 
     self.name = 'MissingParametersError';
-    self._proto_ = handler.prototype;
+
+    Error.captureStackTrace(this, handler.prototype.MissingParametersError);
     return self;
 }

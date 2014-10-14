@@ -27,3 +27,4 @@ module.exports.Validation = require("./components/validation");
 module.exports.Utils      = require("./components/utils");
 module.exports.Collection = require("./components/collection");
 module.exports.Cors       = require("./components/cors");
+module.exports.Error       = require("./components/error");

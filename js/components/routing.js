@@ -1,12 +1,13 @@
-module.exports = function(app, security, validation, settings) {
-    return new Routing(app, security, validation, settings);
+module.exports = function(app, security, validation, settings, errorHandler) {
+    return new Routing(app, security, validation, settings, errorHandler);
 }
 
 var _          = require('underscore'),
     changeCase = require('change-case');
 
 
-var Routing = function(app, security, validation, settings) {
+
+var Routing = function(app, security, validation, settings, errorHandler) {
     this.app          = app;
     this.security     = security;
     this.validation   = validation;
@@ -14,6 +15,8 @@ var Routing = function(app, security, validation, settings) {
         pathControllers: './controllers'
     }, settings);
     this.controllers  = {};
+
+    this.errorHandler = errorHandler;
 
     return this;
 }
@@ -25,6 +28,87 @@ Routing.prototype.loadController = function(name, config) {
 
     return controller;
 }
+
+
+Routing.prototype.loadRoute = function(method, route, security, controller, validator) {
+    console.log("[+] " + method + " " + route + (validator ? " (validation)" : ""));
+
+    var args = [route, this.security.getSecurityMiddleware(security)];
+    var m;
+    switch(method.toLowerCase()) {
+        case 'all':     m = this.app.all;    break;
+        case 'get':     m = this.app.get;    break;
+        case 'post':    m = this.app.post;   break;
+        case 'delete':  m = this.app.delete; break;
+        case 'patch':   m = this.app.patch;  break;
+        default:        console.log("Method not allowed: "+method); return;
+    }
+
+    if (_.isFunction(controller)) {
+        args.push(controller);
+    } else {
+        var methods = this.resolveControllerValidation(controller);
+        var wrapperController = new WrapperController(this.errorHandler, methods);
+        
+        args.push(wrapperController.handleRequest());
+        /*
+         if (_.isFunction(methods.validation)) {
+         console.log("Loading validation components");
+         args.push(this.validation.getValidationMiddleware(methods.validation));
+         }
+         */
+        //args.push(methods['action'].apply(methods['controller'], []));
+    }
+    m.apply(this.app, args);
+
+    return this;
+}
+
+
+WrapperController = function (errorHandler, methods) {
+   this.methods = methods;
+   this.errorHandler = errorHandler;
+
+   return this;
+}
+
+WrapperController.prototype.handleRequest = function() {
+
+    var self = this;
+    return function(req, res, next) {
+
+        try {
+            var handler = self.methods['action'].apply(self.methods['controller'], [req, res]);
+
+            if (isPromise(handler)) {
+
+                handler.then(function(jsonResult) {
+                    res.json(jsonResult);
+                }).catch(function(e) {
+                    // promise failed
+                    return self.errorHandler.handleError(e, req, res, next);
+                });
+
+            } else if (typeof handler == "object") {
+                res.json(handler);
+            } else if(typeof handler == "function") {
+                return handler(req, res);
+            } else {
+                var e = new Error("INTERNAL_ERROR");
+                throw e;
+            }
+
+        } catch (e) {
+            // catch for non promise return
+            return self.errorHandler.handleError(e, req, res, next);
+        }
+    }
+};
+
+function isPromise(obj) {
+    return (typeof obj == "object") && (typeof obj.then == "function") && obj.constructor && (obj.constructor.name == 'Promise');
+}
+
 
 Routing.prototype.resolveControllerValidation = function(controllerName) {
     var parts      = controllerName.split('/');
@@ -52,47 +136,4 @@ Routing.prototype.resolveControllerValidation = function(controllerName) {
     }
 
     return {controller: this.controllers[controller], action: this.controllers[controller][methodAction], validation: validation};
-}
-
-
-Routing.prototype.loadRoute = function(method, route, security, controller, validator) {
-    console.log("[+] " + method + " " + route + (validator ? " (validation)" : ""));
-
-    var args = [route, this.security.getSecurityMiddleware(security)];
-    var m;
-    switch(method.toLowerCase()) {
-        case 'all':     m = this.app.all;    break;
-        case 'get':     m = this.app.get;    break;
-        case 'post':    m = this.app.post;   break;
-        case 'delete':  m = this.app.delete; break;
-        case 'patch':   m = this.app.patch;  break;
-        default:        console.log("Method not allowed: "+method); return;
-    }
-
-    if (_.isFunction(controller)) {
-        args.push(controller);
-    } else {
-        var methods = this.resolveControllerValidation(controller);
-        args.push(this.featuresMiddleware(methods['controller']));
-        /*
-         if (_.isFunction(methods.validation)) {
-         console.log("Loading validation components");
-         args.push(this.validation.getValidationMiddleware(methods.validation));
-         }
-         */
-        args.push(methods['action'].apply(methods['controller'], []));
-    }
-    m.apply(this.app, args);
-
-    return this;
-}
-
-Routing.prototype.featuresMiddleware = function(controller) {
-    return function(req, res, next) {
-        console.log("add method generateUrl to controller")
-        controller.generateUrl = function(path) {
-            return req.protocol + '://' + req.get('host') + path;
-        };
-        next();
-    }
 }

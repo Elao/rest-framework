@@ -240,11 +240,6 @@ Collection.prototype.returnCollection = function(req, res, dataPromise, countPro
                     items: dataPromise(pagination),
                     links: self.generateLinks(req, pagination, pagination.count)
                 })
-            }).then(function(result) {
-                return res.json(result);
-            }).catch(function(e) {
-                console.log(e.stack);
-                res.status(400).json({error: e});
             });
 }
 
@@ -263,12 +258,6 @@ Collection.prototype.returnCollectionTimestamp = function(req, res, dataPromise,
                 links: self.generateTimestampLinks(req, items, dateExtractor, pagination)
             })
         })
-
-    }).then(function(result) {
-        return res.json(result);
-    }).catch(function(e) {
-        console.log(e.stack);
-        res.status(400).json({error: e});
     });
 }
 
@@ -289,11 +278,5 @@ Collection.prototype.returnCollectionFirebase= function(req, res, dataPromise, c
                 links: self.generateFirebaseLinks(req, items, dateExtractor, pagination)
             })
         })
-
-    }).then(function(result) {
-        return res.json(result);
-    }).catch(function(e) {
-        console.log(e.stack);
-        res.status(400).json({error: e});
     });
 }

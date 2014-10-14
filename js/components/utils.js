@@ -8,12 +8,7 @@ module.exports = {
         } else if (_.isString(error)) {
             return error;
         } else if (util.isError(error)) {
-            if (error instanceof TypeError || error instanceof ReferenceError) {
-                console.log(error.stack);
-            }
             return error.message;
-        } else {
-            console.log(error.constructor.name);
         }
         return error;
     },

@@ -1,16 +1,18 @@
 {
-  "name": "amabla-core",
-  "description": "Amabla core components",
-  "version": "0.0.1",
+  "name": "rest-framework",
+  "description": "Rest API Framework",
+  "version": "0.1.0",
   "keywords": [
-    "amabla",
+    "rest",
+    "api",
+    "framework",
     "utils",
     "core"
   ],
-  "homepage": "http://www.elao.com",
+  "homepage": "https://github.com/Elao/rest-framework",
   "repository": {
     "type": "git",
-    "url": "git://git.elao.fr:amabla/amabla-core.git"
+    "url": "https://github.com/Elao/rest-framework.git"
   },
   "license": "MIT",
   "author": {

@@ -6,7 +6,7 @@ var Promise = require('bluebird'),
         _ = require('lodash'),
         url = require('url');
 
-var amablaUtils = require('./utils');
+var rfUtils = require('./utils');
 
 Collection = function() {
 }
@@ -237,7 +237,7 @@ Collection.prototype.returnCollection = function(req, res, dataPromise, countPro
         })
     }
     var promise = countPromise();
-    if (!amablaUtils.isPromise(promise)) {
+    if (!rfUtils.isPromise(promise)) {
         return new Promise(function(resolve, reject) {
             return reject(new Error("result return by countPromise is not a Promise"));
         })
@@ -270,7 +270,7 @@ Collection.prototype.returnCollectionTimestamp = function(req, res, dataPromise,
         })
     }
     var promise = countPromise();
-    if (!amablaUtils.isPromise(promise)) {
+    if (!rfUtils.isPromise(promise)) {
         return new Promise(function(resolve, reject) {
             return reject(new Error("result return by countPromise is not a Promise"));
         })
@@ -308,7 +308,7 @@ Collection.prototype.returnCollectionFirebase = function(req, res, dataPromise, 
         })
     }
     var promise = countPromise();
-    if (!amablaUtils.isPromise(promise)) {
+    if (!rfUtils.isPromise(promise)) {
         return new Promise(function(resolve, reject) {
             return reject(new Error("result return by countPromise is not a Promise"));
         })

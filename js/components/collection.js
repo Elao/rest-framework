@@ -3,8 +3,10 @@ module.exports = function() {
 }
 
 var Promise = require('bluebird'),
-          _ = require('lodash'),
+        _ = require('lodash'),
         url = require('url');
+
+var amablaUtils = require('./utils');
 
 Collection = function() {
 }
@@ -229,6 +231,24 @@ Collection.prototype.generateFirebaseLinks = function(req, items, dateExtractor,
 Collection.prototype.returnCollection = function(req, res, dataPromise, countPromise) {
     var self = this;
 
+    if (typeof countPromise != "function") {
+        return new Promise(function(resolve, reject) {
+            return reject(new Error("countPromise is not a function"));
+        })
+    }
+    var promise = countPromise();
+    if (!amablaUtils.isPromise(promise)) {
+        return new Promise(function(resolve, reject) {
+            return reject(new Error("result return by countPromise is not a Promise"));
+        })
+    }
+
+    if (typeof dataPromise != "function") {
+        return new Promise(function(resolve, reject) {
+            return reject(new Error("dataPromise is not a function"));
+        })
+    }
+
     return countPromise()
             .then(function(count) {
                 return self.resolvePagination(req, count);
@@ -243,6 +263,24 @@ Collection.prototype.returnCollection = function(req, res, dataPromise, countPro
 
 Collection.prototype.returnCollectionTimestamp = function(req, res, dataPromise, countPromise, dateExtractor) {
     var self = this;
+
+    if (typeof countPromise != "function") {
+        return new Promise(function(resolve, reject) {
+            return reject(new Error("countPromise is not a function"));
+        })
+    }
+    var promise = countPromise();
+    if (!amablaUtils.isPromise(promise)) {
+        return new Promise(function(resolve, reject) {
+            return reject(new Error("result return by countPromise is not a Promise"));
+        })
+    }
+
+    if (typeof dataPromise != "function") {
+        return new Promise(function(resolve, reject) {
+            return reject(new Error("dataPromise is not a function"));
+        })
+    }
 
     return countPromise()
             .then(function(count) {
@@ -263,6 +301,24 @@ Collection.prototype.returnCollectionTimestamp = function(req, res, dataPromise,
 
 Collection.prototype.returnCollectionFirebase = function(req, res, dataPromise, countPromise, dateExtractor) {
     var self = this;
+
+    if (typeof countPromise != "function") {
+        return new Promise(function(resolve, reject) {
+            return reject(new Error("countPromise is not a function"));
+        })
+    }
+    var promise = countPromise();
+    if (!amablaUtils.isPromise(promise)) {
+        return new Promise(function(resolve, reject) {
+            return reject(new Error("result return by countPromise is not a Promise"));
+        })
+    }
+
+    if (typeof dataPromise != "function") {
+        return new Promise(function(resolve, reject) {
+            return reject(new Error("dataPromise is not a function"));
+        })
+    }
 
     return countPromise()
             .then(function(count) {

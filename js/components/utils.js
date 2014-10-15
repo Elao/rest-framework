@@ -1,5 +1,5 @@
-var util  = require('util');
-var _     = require('lodash');
+var util = require('util');
+var _ = require('underscore');
 
 module.exports = {
     errorsToString: function(error) {
@@ -14,5 +14,8 @@ module.exports = {
     },
     generator: function(length) {
         return require('crypto').randomBytes(length).toString('hex');
+    },
+    isPromise: function(obj) {
+        return (typeof obj == "object") && (typeof obj.then == "function") && obj.constructor && (obj.constructor.name == 'Promise');
     }
 }

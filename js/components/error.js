@@ -99,6 +99,8 @@ handler.prototype.AccessDeniedError = function(message, reason)
         self.message += "   debug: " + reason;
     }
 
+    self.reason = reason;
+
     self.name = 'AccessDeniedError';
     Error.captureStackTrace(this, handler.prototype.AccessDeniedError);
     return self;
@@ -119,6 +121,7 @@ handler.prototype.MissingParametersError = function(message, fields)
     }
 
     self.name = 'MissingParametersError';
+    self.fields = fields;
 
     Error.captureStackTrace(this, handler.prototype.MissingParametersError);
     return self;

@@ -10,6 +10,8 @@ var should = require('chai').should(),
 
 var Promise = require('bluebird');
 
+var _ = require('lodash');
+
 describe('Collection basic', function() {
     var c = new collection();
 
@@ -380,16 +382,13 @@ describe('Collection Usage', function() {
             }
         };
 
-        var items = [
-            {
-                id: 1,
-                name: "item 1"
-            },
-            {
-                id: 2,
-                name: "item 2"
-            }
-        ]
+        var items = [];
+        for (var i = 1; i < 50; i++) {
+            items.push({
+                id: i,
+                name: "item " + i
+            })
+        }
 
         it('should return valid structure ', function(done) {
             var count = 30;
@@ -416,7 +415,136 @@ describe('Collection Usage', function() {
                     "next": "http://localhost/?page=2&limit=2",
                 }
             }, "Bad structure").then(done, done);
-        })
+        });
+
+        it('should failed if wrong parameters for data/count promise', function(done) {
+            var count = 30;
+            var data = [];
+
+            var badPromise = c.returnCollection(req, null, "data", "count").then(function(e) {
+                done(new Error("returnCollection must throw an error with wrong parameters"))
+            }).catch(function(e) {
+                done();
+            });
+        });
     });
+
+
+    describe("#returnCollectionTimestamp", function() {
+
+        var req = {
+            protocol: "http",
+            "originalUrl": "",
+            "get": function(e) {
+                return "localhost";
+            },
+            "query": {
+                limit: 2
+            }
+        };
+
+        var items = [];
+        for (var i = 1; i < 50; i++) {
+            items.push({
+                id: i,
+                name: "item " + i
+            })
+        }
+
+        it('should return valid structure ', function(done) {
+            var count = 30;
+            var countPromise = function() {
+                return new Promise(function(resolve, reject) {
+                    return resolve(count);
+                });
+            }
+
+            var dataPromise = function(pagination) {
+                return new Promise(function(resolve, reject) {
+                    return resolve(items);
+                });
+            }
+
+            var goodPromise = c.returnCollectionTimestamp(req, null, dataPromise, countPromise, "id");
+            assert.becomes(goodPromise, {
+                "count": count,
+                "items": items,
+                "links": {
+                    "last": "http://localhost/?limit=2&since=0&before=49",
+                    "next": "http://localhost/?limit=2&before=49"
+                }
+            }, "Bad structure").then(done, done);
+        });
+
+        it('should failed if wrong parameters for data/count promise', function(done) {
+            var count = 30;
+            var data = [];
+
+            c.returnCollectionTimestamp(req, null, "data", "count").then(function(e) {
+                done(new Error("returnCollection must throw an error with wrong parameters"))
+            }).catch(function(e) {
+                done();
+            });
+        });
+    });
+
+
+    describe("#returnCollectionFirebase", function() {
+
+        var req = {
+            protocol: "http",
+            "originalUrl": "",
+            "get": function(e) {
+                return "localhost";
+            },
+            "query": {
+                limit: 2
+            }
+        };
+
+        var items = [];
+        for (var i = 1; i < 50; i++) {
+            items.push({
+                id: i,
+                name: "item " + i
+            })
+        }
+
+        it('should return valid structure ', function(done) {
+            var count = 30;
+            var countPromise = function() {
+                return new Promise(function(resolve, reject) {
+                    return resolve(count);
+                });
+            }
+
+            var dataPromise = function(pagination) {
+                return new Promise(function(resolve, reject) {
+                    return resolve(items);
+                });
+            }
+
+            var goodPromise = c.returnCollectionFirebase(req, null, dataPromise, countPromise, "id");
+            assert.becomes(goodPromise, {
+                "count": count,
+                "items": items,
+                "links": {
+                    "next": "http://localhost/?limit=2&before=49"
+                }
+            }, "Bad structure").then(done, done);
+        });
+
+        it('should failed if wrong parameters for data/count promise', function(done) {
+            var count = 30;
+            var data = [];
+
+            c.returnCollectionFirebase(req, null, "data", "count").then(function(e) {
+                done(new Error("returnCollection must throw an error with wrong parameters"))
+            }).catch(function(e) {
+                done();
+            });
+        });
+    });
+
 
 })

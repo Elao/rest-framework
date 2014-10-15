@@ -3,39 +3,39 @@ module.exports = function() {
 }
 
 var Promise = require('bluebird'),
-    _       = require('underscore'),
-    url     = require('url');
+        _ = require('underscore'),
+        url = require('url');
 
 Collection = function() {
 }
 
 Collection.prototype.resolvePagination = function(req, count) {
     return new Promise(function(resolve, reject) {
-        var page    = parseInt(req.query.page);
-        var limit   = parseInt(req.query.limit);
-        
+        var page = parseInt(req.query.page);
+        var limit = parseInt(req.query.limit);
+
         if (isNaN(page) || !_.isNumber(page)) {
             page = 1;
         }
-        if (isNaN(limit)|| !_.isNumber(limit)) {
+        if (isNaN(limit) || !_.isNumber(limit)) {
             limit = 10;
         }
 
-        var since    = req.query.since  != undefined ? req.query.since : null;
-        var before   = req.query.before != undefined ? req.query.before : null;
-        var until    = req.query.until  != undefined ? req.query.until : null;
+        var since = req.query.since != undefined ? req.query.since : null;
+        var before = req.query.before != undefined ? req.query.before : null;
+        var until = req.query.until != undefined ? req.query.until : null;
 
 
         limit = Math.max(limit, 1);
         var maxPage = Math.max(Math.ceil(count / limit), 1);
-        page  = Math.min(Math.max(page, 1), maxPage);
+        page = Math.min(Math.max(page, 1), maxPage);
 
         var pagination = {
-            offset:     (page - 1) * limit,
-            limit:      limit,
-            page:       page,
-            count:      count,
-            lastPage:   Math.max(Math.ceil(count / limit), 1),
+            offset: (page - 1) * limit,
+            limit: limit,
+            page: page,
+            count: count,
+            lastPage: Math.max(Math.ceil(count / limit), 1),
             since: since,
             before: before,
             until: until
@@ -45,10 +45,10 @@ Collection.prototype.resolvePagination = function(req, count) {
     });
 }
 
-Collection.prototype.generateLinks = function(req, pagination, count) {
+Collection.prototype.generateLinks = function(req, pagination) {
     var components = url.parse(req.protocol + '://' + req.get('host') + req.originalUrl, true);
     delete components.search;
-    var queryObj   = components.query;
+    var queryObj = components.query;
 
     var getLink = function(page) {
         var newQueryObj = _.extend(queryObj, {page: page, limit: pagination.limit});
@@ -56,8 +56,8 @@ Collection.prototype.generateLinks = function(req, pagination, count) {
     }
 
     var links = {};
-    links.first   = getLink(1);
-    links.last    = getLink(pagination.lastPage);
+    links.first = getLink(1);
+    links.last = getLink(pagination.lastPage);
     links.current = getLink(pagination.page);
 
     if (pagination.page > 1) {
@@ -166,7 +166,7 @@ Collection.prototype.generateTimestampLinks = function(req, items, dateExtractor
         var value = item[dateExtractor];
         links['next'] = getLink('before', value);
     }
-    console.log(links);
+
     return Promise.resolve(links);
 }
 
@@ -188,12 +188,10 @@ Collection.prototype.generateFirebaseLinks = function(req, items, dateExtractor,
         return url.format(_.extend(components, {query: newQueryObj}));
     }
 
-    console.log(pagination);
-
     hasPrevious = function() {
         if (items.length == 0)
             return false;
-        
+
         return pagination.before != null || pagination.since != null ? true : false;
     };
 
@@ -224,7 +222,7 @@ Collection.prototype.generateFirebaseLinks = function(req, items, dateExtractor,
         var value = item[dateExtractor];
         links['next'] = getLink('before', value);
     }
-    
+
     return Promise.resolve(links);
 }
 
@@ -235,12 +233,12 @@ Collection.prototype.returnCollection = function(req, res, dataPromise, countPro
             .then(function(count) {
                 return self.resolvePagination(req, count);
             }).then(function(pagination) {
-                return Promise.props({
-                    count: pagination.count,
-                    items: dataPromise(pagination),
-                    links: self.generateLinks(req, pagination, pagination.count)
-                })
-            });
+        return Promise.props({
+            count: pagination.count,
+            items: dataPromise(pagination),
+            links: self.generateLinks(req, pagination)
+        })
+    });
 }
 
 Collection.prototype.returnCollectionTimestamp = function(req, res, dataPromise, countPromise, dateExtractor) {
@@ -263,7 +261,7 @@ Collection.prototype.returnCollectionTimestamp = function(req, res, dataPromise,
 
 
 
-Collection.prototype.returnCollectionFirebase= function(req, res, dataPromise, countPromise, dateExtractor) {
+Collection.prototype.returnCollectionFirebase = function(req, res, dataPromise, countPromise, dateExtractor) {
     var self = this;
 
     return countPromise()

@@ -31,5 +31,17 @@
   "files": [
     "js/components",
     "js/main.js"
-  ]
+  ],
+  "devDependencies": {
+    "mocha": "^1.21.4",
+    "chai": "^1.9.1",
+    "gulp-mocha": "^1.1.0",
+    "gulp": "^3.8.8",
+    "gulp-util": "^3.0.1",
+    "gulp-jshint": "^1.8.4",
+    "chai-as-promised": "^4.1.1"
+  },
+  "scripts": {
+    "test": "gulp test"
+  }
 }

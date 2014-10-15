@@ -24,10 +24,9 @@
     "bluebird": "^2.0",
     "http-auth": "^2.1.9",
     "request": "^2.39.0",
-    "underscore": "^1.6.0",
+    "lodash": "^2.4.1",
     "change-case": "^2.1.5",
-    "validate.js": "~0.3.0",
-    "rulebased-validator": "^1.0.2"
+    "validator-framework": "^0.1.0"
   },
   "main": "./js/main.js",
   "files": [

@@ -3,7 +3,7 @@ module.exports = function() {
 }
 
 var Promise = require('bluebird'),
-        _ = require('underscore'),
+          _ = require('lodash'),
         url = require('url');
 
 Collection = function() {

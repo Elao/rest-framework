@@ -2,7 +2,7 @@ module.exports = function(app, security, validation, settings, errorHandler) {
     return new Routing(app, security, validation, settings, errorHandler);
 }
 
-var _          = require('underscore'),
+var _          = require('lodash'),
     changeCase = require('change-case');
 
 
@@ -49,7 +49,7 @@ Routing.prototype.loadRoute = function(method, route, security, controller, vali
     } else {
         var methods = this.resolveControllerValidation(controller);
         var wrapperController = new WrapperController(this.errorHandler, methods);
-        
+
         args.push(wrapperController.handleRequest());
         /*
          if (_.isFunction(methods.validation)) {

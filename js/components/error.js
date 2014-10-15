@@ -1,7 +1,7 @@
 var util = require('util');
-var _ = require('underscore');
+var    _ = require('lodash');
 
-var amablaUtils = require('./utils');
+var rfUtils = require('./utils');
 
 module.exports = function(config) {
     return new handler(config);
@@ -27,7 +27,7 @@ handler.prototype.handleError = function(e, req, res, next) {
             console.log(e.stack)
         }
 
-        var errorDisplayed = {error: amablaUtils.errorsToString(e)};
+        var errorDisplayed = {error: rfUtils.errorsToString(e)};
 
         if (this.config.debug) {
             errorDisplayed.stack = e.stack;
@@ -38,7 +38,7 @@ handler.prototype.handleError = function(e, req, res, next) {
             return res.status(500).json(errorDisplayed);
         }
 
-        // Handle our amabla error
+        // Handle our rest-framework error
         switch (e.name) {
             case 'NotFoundError':
                 return res.status(404).json(errorDisplayed);
@@ -57,12 +57,12 @@ handler.prototype.handleError = function(e, req, res, next) {
             return res.status(e.statusCode).json(errorDisplayed);
         }
 
-        // bad use of amabla-core
+        // bad use of rest-framework
     } else if (_.isString(e)) {
         return res.status(500).json({error: e});
     }
 
-    return res.status(400).json({error: amablaUtils.errorsToString(e)});
+    return res.status(400).json({error: rfUtils.errorsToString(e)});
 }
 
 handler.prototype.NotFoundError = function(message, type, id)

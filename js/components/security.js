@@ -2,7 +2,7 @@ module.exports = function(oauth, settings) {
     return new Security(oauth, settings);
 }
 
-var _ = require('underscore'),
+var _ = require('lodash'),
         basic_auth = require('http-auth');
 var request = require("request");
 var Promise = require('bluebird');

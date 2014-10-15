@@ -1,5 +1,5 @@
 var utils = require('util');
-var _     = require('underscore');
+var _     = require('lodash');
 
 module.exports = {
 

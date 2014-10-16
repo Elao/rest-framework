@@ -14,6 +14,7 @@ handler = function(config) {
     this.NotFoundError.prototype = Object.create(Error.prototype);
     this.AccessDeniedError.prototype = Object.create(Error.prototype);
     this.MissingParametersError.prototype = Object.create(Error.prototype);
+    this.ValidationParametersError.prototype = Object.create(Error.prototype);
 
     return this;
 }
@@ -43,7 +44,9 @@ handler.prototype.handleError = function(e, req, res, next) {
             case 'NotFoundError':
                 return res.status(404).json(errorDisplayed);
                 break;
-
+            case 'ValidationParameterError':
+                return res.status(400).json(errorDisplaed);
+                break;
             case 'MissingParametersError':
                 return res.status(400).json(errorDisplayed);
                 break;
@@ -126,5 +129,25 @@ handler.prototype.MissingParametersError = function(message, fields)
     self.fields = fields;
 
     Error.captureStackTrace(this, handler.prototype.MissingParametersError);
+    return self;
+}
+
+handler.prototype.ValidationParametersError = function(errors)
+{
+    var self = this;
+
+    self.message = "INVALID_PARAMETERS";
+    /*
+    if (message != "") {
+        self.message = message;
+    }*/
+
+    if (this.config != undefined && this.config.debug) {
+        self.message += "   debug: " + fields;
+    }
+
+    self.name = 'ValidationParametersError';
+
+    Error.captureStackTrace(this, handler.prototype.ValidationParametersError);
     return self;
 }

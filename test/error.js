@@ -242,7 +242,7 @@ describe('#handleError', function() {
         request(app)
                 .post('/')
                 .expect('{\n  "error": "AAAA"\n}')
-                .expect(400, done);
+                .expect(500, done);
     })
 
 

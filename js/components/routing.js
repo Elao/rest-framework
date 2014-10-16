@@ -32,7 +32,7 @@ Routing.prototype.loadController = function(name, config) {
 
 
 Routing.prototype.loadRoute = function(method, route, security, controller, validator) {
-    console.log("[+] " + method + " " + route + (validator ? " (validation)" : ""));
+    //console.log("[+] " + method + " " + route + (validator ? " (validation)" : ""));
 
     var args = [route, this.security.getSecurityMiddleware(security)];
     var m;
@@ -53,7 +53,7 @@ Routing.prototype.loadRoute = function(method, route, security, controller, vali
             m = this.app.patch;
             break;
         default:
-            console.log("Method not allowed: " + method);
+            //console.log("Method not allowed: " + method);
             return;
     }
 

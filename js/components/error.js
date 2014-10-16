@@ -1,5 +1,5 @@
 var util = require('util');
-var    _ = require('lodash');
+var _ = require('lodash');
 
 var rfUtils = require('./utils');
 
@@ -58,6 +58,8 @@ handler.prototype.handleError = function(e, req, res, next) {
         }
 
         // bad use of rest-framework
+        return res.status(500).json({error: rfUtils.errorsToString(e)});
+
     } else if (_.isString(e)) {
         return res.status(500).json({error: e});
     }

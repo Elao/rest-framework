@@ -9,11 +9,6 @@ var should = require('chai').should(),
         assert = require('chai').assert;
 
 var PromiseBlueBird = require('bluebird');
-var _ = require('lodash');
-
-var express = require('express');
-var request = require('supertest');
-
 var Promise = require('promise');
 var PromiseNode = require('node-promise').Promise;
 var when = require('when');

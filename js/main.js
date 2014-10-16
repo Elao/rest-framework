@@ -23,7 +23,6 @@
 "use strict";
 module.exports.Routing    = require("./components/routing");
 module.exports.Security   = require("./components/security");
-module.exports.Validation = require("./components/validation");
 module.exports.Utils      = require("./components/utils");
 module.exports.Collection = require("./components/collection");
 module.exports.Cors       = require("./components/cors");

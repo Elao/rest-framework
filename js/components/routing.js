@@ -1,16 +1,16 @@
-module.exports = function(app, security, validation, settings, errorHandler) {
-    return new Routing(app, security, validation, settings, errorHandler);
+module.exports = function(app, security, settings, errorHandler) {
+    return new Routing(app, security, settings, errorHandler);
 }
 
 var _          = require('lodash'),
     changeCase = require('change-case');
+    Validation = require('validator-framework'),
+    Promise    = require('bluebird');
 
 
-
-var Routing = function(app, security, validation, settings, errorHandler) {
+var Routing = function(app, security, settings, errorHandler) {
     this.app          = app;
     this.security     = security;
-    this.validation   = validation;
     this.settings     = _.extend({
         pathControllers: './controllers'
     }, settings);
@@ -47,29 +47,83 @@ Routing.prototype.loadRoute = function(method, route, security, controller, vali
     if (_.isFunction(controller)) {
         args.push(controller);
     } else {
-        var methods = this.resolveControllerValidation(controller);
+        var methods           = this.resolveControllerValidation(controller);
         var wrapperController = new WrapperController(this.errorHandler, methods);
 
+        if (methods.validation) {
+            args.push(wrapperController.handleRequestValidation());
+        }
         args.push(wrapperController.handleRequest());
-        /*
-         if (_.isFunction(methods.validation)) {
-         console.log("Loading validation components");
-         args.push(this.validation.getValidationMiddleware(methods.validation));
-         }
-         */
-        //args.push(methods['action'].apply(methods['controller'], []));
     }
     m.apply(this.app, args);
 
     return this;
 }
 
-
 WrapperController = function (errorHandler, methods) {
-   this.methods = methods;
+   this.methods      = methods;
    this.errorHandler = errorHandler;
 
    return this;
+}
+
+WrapperController.prototype.handleRequestValidation = function() {
+    var self = this;
+
+    return function(req, res, next) {
+        var handlerResult = self.methods['validation'].apply(self.methods['controller'], [req, res]);
+        if (_.isObject(handlerResult)) {
+            handlerResult = Promise.resolve(handlerResult);
+        } else if (!isPromise(handlerResult)) {
+            throw new Error("baby :)");
+        }
+
+        handlerResult.then(function(validations) {
+            var promises = [];
+            _.each(validations, function(validation) {
+                var applyOn = validation.on;
+                var groups   = validation.groups;
+                if (groups && !_.isArray(groups)) {
+                    groups = [groups];
+                }
+                var rules = validation.rules;
+                promises.push(self.getPromiseValidation(req[applyOn] || {}, rules, groups));
+            });
+            if (promises.length == 0) {
+                next();
+            }
+
+            Promise.settle(promises)
+                   .then(function(results) {
+                        console.log(results);
+                        var errors    = [];
+                        _.each(results, function(promiseResult) {
+                            console.log(promiseResult);
+                            if (promiseResult.isRejected()) {
+                                errors.push(promiseResult.reason());
+                            }
+                        });
+                        console.log(errors);
+                        if (errors.length > 0) {
+                            return self.sendValidationErrors(req, res, errors, next);
+                        } else {
+                            next();
+                        }
+                   });
+        });
+    }
+}
+
+WrapperController.prototype.getPromiseValidation = function(data, rules, groups) {
+    console.log(data);
+    console.log(rules);
+    console.log(groups);
+    return Validation.ObjectValidator(rules)
+                     .validate(data, {groups: groups});
+}
+
+WrapperController.prototype.sendValidationErrors = function(req, res, errors, next) {
+    return this.errorHandler.handleError(new handler.prototype.ValidationParametersError(errors), req, res, next);
 }
 
 WrapperController.prototype.handleRequest = function() {
@@ -121,7 +175,7 @@ Routing.prototype.resolveControllerValidation = function(controllerName) {
     var action           = parts[1];
     var methodAction     = 'get' + changeCase.upperCaseFirst(action)+ 'Action';
     var methodValidation = 'get' + changeCase.upperCaseFirst(action)+ 'Validation';
-    var validation       = null;
+    var validation       = undefined;
 
     if (!_.has(this.controllers, controller)) {
         throw new Error("Controller not found : " + controller);

@@ -29,8 +29,7 @@ function generateNewRouting() {
                 rules: {
                     'dummy': {}
                 }
-            }),
-            {},
+            }), 
             {
                 pathControllers: 'test/routing'
             },

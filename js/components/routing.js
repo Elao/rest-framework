@@ -5,6 +5,7 @@ module.exports = function(app, security, settings, errorHandler) {
 var _          = require('lodash'),
     changeCase = require('change-case');
     Validation = require('validator-framework'),
+    rfUtils    = require('./utils'),
     Promise    = require('bluebird');
 
 
@@ -74,7 +75,7 @@ WrapperController.prototype.handleRequestValidation = function() {
         var handlerResult = self.methods['validation'].apply(self.methods['controller'], [req, res]);
         if (_.isObject(handlerResult)) {
             handlerResult = Promise.resolve(handlerResult);
-        } else if (!isPromise(handlerResult)) {
+        } else if (!rfUtils.isPromise(handlerResult)) {
             throw new Error("baby :)");
         }
 
@@ -134,7 +135,7 @@ WrapperController.prototype.handleRequest = function() {
         try {
             var handler = self.methods['action'].apply(self.methods['controller'], [req, res]);
 
-            if (isPromise(handler)) {
+            if (rfUtils.isPromise(handler)) {
 
                 handler.then(function(jsonResult) {
                     res.json(jsonResult);
@@ -158,11 +159,6 @@ WrapperController.prototype.handleRequest = function() {
         }
     }
 };
-
-function isPromise(obj) {
-    return (typeof obj == "object") && (typeof obj.then == "function") && obj.constructor && (obj.constructor.name == 'Promise');
-}
-
 
 Routing.prototype.resolveControllerValidation = function(controllerName) {
     var parts      = controllerName.split('/');

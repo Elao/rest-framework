@@ -15,7 +15,8 @@ module.exports = {
     generator: function(length) {
         return require('crypto').randomBytes(length).toString('hex');
     },
-    isPromise: function(obj) {
-        return (typeof obj == "object") && (typeof obj.then == "function") && obj.constructor && (obj.constructor.name == 'Promise');
+    isPromise: function(object) {
+        return object === Object(object) && typeof object.then === "function";
     }
 }
+ 

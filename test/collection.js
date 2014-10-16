@@ -15,11 +15,11 @@ var _ = require('lodash');
 describe('Collection basic', function() {
     var c = new collection();
 
-    it('shoud "collection" has good signature', function() {
+    it('should "collection" has good signature', function() {
         return assert.typeOf(collection, 'function', 'collection is not a function')
     });
 
-    it('shoud "collection" has mandatory method', function() {
+    it('should "collection" has mandatory method', function() {
 
         expect(c).to.respondTo('resolvePagination');
         expect(c).to.respondTo('generateLinks');

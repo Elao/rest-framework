@@ -42,7 +42,11 @@
     "gulp-jshint": "^1.8.4",
     "chai-as-promised": "^4.1.1",
     "supertest":  "~0.14.0",
-    "express": "3.x"
+    "express": "3.x",
+    "promise" : "~6.0.0",
+    "node-promise": "~0.5.10",
+    "when": "~3.5.0",
+    "q": "~1.0.1"
   },
   "scripts": {
     "test": "gulp test"

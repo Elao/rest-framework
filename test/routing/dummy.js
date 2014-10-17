@@ -54,3 +54,84 @@ Controller.prototype.getReferenceErrorAction = function(req, res) {
     };
 }
 
+
+
+
+Controller.prototype.getTestValidatorNestedValidation = function() {
+
+    return [{
+            rules: {
+                id: {
+                    required: true
+                },
+                contacts: {
+                    contentObjects: {
+                        username: {
+                            required: {value: true, group: ["create"], "message": "username required on body"}
+                        },
+                        email: {
+                            required: true,
+                            isEmail: true
+                        }
+                    }
+                }
+            },
+            on: 'body'
+        }       
+    ]
+}
+
+
+Controller.prototype.getTestValidatorNestedAction = function(req, res) {
+    var self = this;
+
+    return {
+        "ok": "ok"
+    };
+}
+
+
+
+
+Controller.prototype.getTestValidatorValidation = function() {
+
+    return [{
+            rules: {
+                username: {
+                    required: {value: true, group: ["create"], "message": "username required on body"}
+                },
+                user_id: {
+                    required: {value: true, group: ["create"]}
+                },
+                email: {
+                    required: {value: true, group: ["create"]},
+                    isEmail: {value: true},
+                    custom: {value: function(e) {
+                            return false
+                        }, message: 'aie'}
+                },
+                birthday: {
+                    required: {value: true, group: ["create"], "message": "birthday required on body"}
+                }
+            },
+            on: 'body'
+        },
+        {
+            rules: {
+                username: {
+                    required: {value: true, group: ["create"], "message": "username required on params"}
+                },
+            },
+            on: 'params'
+        }
+    ]
+}
+
+
+Controller.prototype.getTestValidatorAction = function(req, res) {
+    var self = this;
+
+    return {
+        "ok": "ok"
+    };
+}

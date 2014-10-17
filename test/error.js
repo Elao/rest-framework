@@ -25,7 +25,6 @@ describe('Error components', function() {
 
         expect(c).to.respondTo('NotFoundError');
         expect(c).to.respondTo('AccessDeniedError');
-        expect(c).to.respondTo('MissingParametersError');
         expect(c).to.respondTo('handleError');
     });
 
@@ -84,68 +83,9 @@ describe('#AccessDeniedError', function() {
 });
 
 
-describe('#MissingParametersError', function() {
-
-    it("should return an Error object", function() {
-
-        var c = new errorComponents();
-
-        var error = new c.MissingParametersError("MESSAGE", "fields");
-        expect(error.fields).equal("fields");
-        expect(error.message).equal("MESSAGE");
-        expect(error.name).equal("MissingParametersError");
-    })
-
-    it("should return an Error object", function() {
-
-        var c = new errorComponents();
-
-        var error = new c.MissingParametersError("", "fields");
-        expect(error.fields).equal("fields");
-        expect(error.message).equal("MISSING_PARAMETERS");
-        expect(error.name).equal("MissingParametersError");
-    })
-});
-
 
 describe('#handleError', function() {
 
-    it("should handle MissingParametersError default error", function(done) {
-
-        var app = express();
-        app.use(function(req, res) {
-
-            var c = new errorComponents({debug: false});
-
-            var e = new c.MissingParametersError("", "fields");
-            c.handleError(e, req, res);
-
-            return res;
-        });
-        request(app)
-                .post('/')
-                .expect('{\n  "error": "MISSING_PARAMETERS"\n}')
-                .expect(400, done);
-    })
-
-
-    it("should handle MissingParametersError with custom message", function(done) {
-
-        var app = express();
-        app.use(function(req, res) {
-
-            var c = new errorComponents({debug: false});
-
-            var e = new c.MissingParametersError("CUSTOM", "fields");
-            c.handleError(e, req, res);
-
-            return res;
-        });
-        request(app)
-                .post('/')
-                .expect('{\n  "error": "CUSTOM"\n}')
-                .expect(400, done);
-    })
 
 
 
@@ -156,14 +96,30 @@ describe('#handleError', function() {
 
             var c = new errorComponents({debug: false});
 
-            var e = new c.NotFoundError("", "fields");
+            var e = new c.NotFoundError("", "user", "1");
             c.handleError(e, req, res);
 
             return res;
         });
         request(app)
                 .post('/')
-                .expect('{\n  "error": "NOT_FOUND"\n}')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "NOT_FOUND")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "404")
+                        return "status code key invalid";
+                })
                 .expect(404, done);
     })
 
@@ -175,14 +131,30 @@ describe('#handleError', function() {
 
             var c = new errorComponents({debug: false});
 
-            var e = new c.NotFoundError("CUSTOM", "fields");
+            var e = new c.NotFoundError("CUSTOM", "user", "1");
             c.handleError(e, req, res);
 
             return res;
         });
         request(app)
                 .post('/')
-                .expect('{\n  "error": "CUSTOM"\n}')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "CUSTOM")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "404")
+                        return "status code key invalid";
+                })
                 .expect(404, done);
     })
 
@@ -195,14 +167,30 @@ describe('#handleError', function() {
 
             var c = new errorComponents({debug: false});
 
-            var e = new c.AccessDeniedError("", "fields");
+            var e = new c.AccessDeniedError("", "you can not make this action");
             c.handleError(e, req, res);
 
             return res;
         });
         request(app)
                 .post('/')
-                .expect('{\n  "error": "NOT_ALLOWED"\n}')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "NOT_ALLOWED")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "403")
+                        return "status code key invalid";
+                })
                 .expect(403, done);
     })
 
@@ -214,14 +202,30 @@ describe('#handleError', function() {
 
             var c = new errorComponents({debug: false});
 
-            var e = new c.AccessDeniedError("CUSTOM", "fields");
+            var e = new c.AccessDeniedError("CUSTOM", "you can not make this action");
             c.handleError(e, req, res);
 
             return res;
         });
         request(app)
                 .post('/')
-                .expect('{\n  "error": "CUSTOM"\n}')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "CUSTOM")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "403")
+                        return "status code key invalid";
+                })
                 .expect(403, done);
     })
 
@@ -234,14 +238,30 @@ describe('#handleError', function() {
 
             var c = new errorComponents({debug: false});
 
-            var e = new Error("AAAA");
+            var e = new Error("foo");
             c.handleError(e, req, res);
 
             return res;
         });
         request(app)
                 .post('/')
-                .expect('{\n  "error": "AAAA"\n}')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "foo")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "500")
+                        return "status code key invalid";
+                })
                 .expect(500, done);
     })
 
@@ -253,7 +273,7 @@ describe('#handleError', function() {
 
             var c = new errorComponents({debug: false});
 
-            var e = new Error("AAAA");
+            var e = new Error("foo");
             e.statusCode = 408;
             c.handleError(e, req, res);
 
@@ -261,8 +281,65 @@ describe('#handleError', function() {
         });
         request(app)
                 .post('/')
-                .expect('{\n  "error": "AAAA"\n}')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "foo")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "408")
+                        return "status code key invalid";
+                })
                 .expect(408, done);
+    })
+
+
+
+    it("should handle default Error with custom statusCode and details", function(done) {
+
+        var app = express();
+        app.use(function(req, res) {
+
+            var c = new errorComponents({debug: false});
+
+            var e = new Error("foo");
+            e.statusCode = 409;
+            e.details = "bar"
+            c.handleError(e, req, res);
+
+            return res;
+        });
+        request(app)
+                .post('/')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "foo")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "409")
+                        return "status code key invalid";
+
+                    if (res.body.details != "bar")
+                        return "details invalid";
+                })
+                .expect(409, done);
     })
 
 
@@ -282,8 +359,23 @@ describe('#handleError', function() {
         });
         request(app)
                 .post('/')
-                .expect('{\n  "error": "vars is not defined"\n}')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "error is not defined";
+
+                    if (res.body.error != "vars is not defined")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "500")
+                        return "status code key invalid";
+                })
                 .expect(500, done);
     })
-
 });

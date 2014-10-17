@@ -21,6 +21,8 @@ handler = function(config) {
 
 handler.prototype.handleError = function(e, req, res, next) {
 
+    var self = this;
+
     if (util.isError(e)) {
 
         // Better to use EventEmitter no ?
@@ -36,38 +38,35 @@ handler.prototype.handleError = function(e, req, res, next) {
 
         // Handle default Javascript Error as Internal Error
         if (e instanceof TypeError || e instanceof ReferenceError) {
-            return res.status(500).json(errorDisplayed);
+            return res.status(500).json(self.formatError(500, rfUtils.errorsToString(e), ""));
         }
 
         // Handle our rest-framework error
         switch (e.name) {
             case 'NotFoundError':
-                return res.status(404).json(errorDisplayed);
+                return res.status(404).json(self.formatError(404, rfUtils.errorsToString(e), e.details));
                 break;
-            case 'ValidationParameterError':
-                return res.status(400).json(errorDisplaed);
+            case 'ValidationParametersError':
+                return res.status(400).json(self.formatError(400, rfUtils.errorsToString(e), e.details));
                 break;
             case 'MissingParametersError':
-                return res.status(400).json(errorDisplayed);
+                return res.status(400).json(self.formatError(400, rfUtils.errorsToString(e), e.details));
                 break;
             case 'AccessDeniedError':
-                return res.status(403).json(errorDisplayed);
+                return res.status(403).json(self.formatError(403, rfUtils.errorsToString(e), e.details));
                 break;
         }
 
         // If you emit custom error with statusCode
         if (e.statusCode != undefined) {
-            return res.status(e.statusCode).json(errorDisplayed);
+            return res.status(e.statusCode).json(self.formatError(e.statusCode, rfUtils.errorsToString(e), e.details != undefined ? e.details : ""));
         }
 
         // bad use of rest-framework
-        return res.status(500).json({error: rfUtils.errorsToString(e)});
-
-    } else if (_.isString(e)) {
-        return res.status(500).json({error: e});
+        return res.status(500).json(self.formatError(500, rfUtils.errorsToString(e), e.details != undefined ? e.details : ""));
     }
 
-    return res.status(400).json({error: rfUtils.errorsToString(e)});
+    return res.status(400).json(self.formatError(500, e, ""));
 }
 
 handler.prototype.NotFoundError = function(message, type, id)
@@ -81,11 +80,9 @@ handler.prototype.NotFoundError = function(message, type, id)
         self.message = message;
     }
 
-    if (this.config != undefined && this.config.debug) {
-        self.message += "  debug:  " + type + " with id: " + id;
-    }
-
+    self.details = type + " not found with id: " + id;
     self.name = 'NotFoundError';
+
     Error.captureStackTrace(this, handler.prototype.NotFoundError);
     return self;
 }
@@ -100,10 +97,7 @@ handler.prototype.AccessDeniedError = function(message, reason)
         self.message = message;
     }
 
-    if (this.config != undefined && this.config.debug) {
-        self.message += "   debug: " + reason;
-    }
-
+    self.details = reason;
     self.reason = reason;
 
     self.name = 'AccessDeniedError';
@@ -121,8 +115,11 @@ handler.prototype.MissingParametersError = function(message, fields)
         self.message = message;
     }
 
-    if (this.config != undefined && this.config.debug) {
-        self.message += "   debug: " + fields;
+    if (_.isArray(fields)) {
+        self.details = fields.join(",");
+    }
+    else {
+        self.details = "";
     }
 
     self.name = 'MissingParametersError';
@@ -132,22 +129,45 @@ handler.prototype.MissingParametersError = function(message, fields)
     return self;
 }
 
-handler.prototype.ValidationParametersError = function(errors)
+handler.prototype.ValidationParametersError = function(domainsErrors)
 {
     var self = this;
 
     self.message = "INVALID_PARAMETERS";
-    /*
-    if (message != "") {
-        self.message = message;
-    }*/
 
-    if (this.config != undefined && this.config.debug) {
-        self.message += "   debug: " + fields;
+    var messages = []
+    var errorOnField = [];
+    _.each(domainsErrors, function(domain) {
+
+
+        var flatError = domain.flat();
+        _.forIn(flatError, function(value, key) {
+            errorOnField.push({
+                "field": key,
+                "error": value,
+                "on": domain.applyOn
+            });
+        });
+
+        // messages.push(JSON.stringify(e.flat()));
+    });
+
+    self.details = {
+        errors: _.values(errorOnField)
     }
 
     self.name = 'ValidationParametersError';
 
     Error.captureStackTrace(this, handler.prototype.ValidationParametersError);
     return self;
+}
+
+handler.prototype.formatError = function(statusCode, message, details) {
+
+    return {
+        statusCode: statusCode,
+        error: message,
+        details: details,
+        date: new Date()
+    }
 }

@@ -18,6 +18,7 @@ var express = require('express');
 var request = require('supertest');
 
 var app = express();
+app.use(express.bodyParser());
 
 function generateNewRouting() {
 
@@ -29,7 +30,7 @@ function generateNewRouting() {
                 rules: {
                     'dummy': {}
                 }
-            }), 
+            }),
             {
                 pathControllers: 'test/routing'
             },
@@ -88,7 +89,23 @@ describe('Routing components test ', function() {
 
         request(app)
                 .get('/test/missing')
-                .expect('{\n  "error": "INTERNAL_ERROR"\n}')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "vars is not defined";
+
+                    if (res.body.error != "INTERNAL_ERROR")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "500")
+                        return "status code key invalid";
+                })
                 .expect(500, done);
     });
 
@@ -121,9 +138,131 @@ describe('Routing components test ', function() {
 
         request(app)
                 .get('/referenceError')
-                .expect('{\n  "error": "vars is not defined"\n}')
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "vars is not defined")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "500")
+                        return "status code key invalid";
+                })
                 .expect(500, done);
     });
+
+
+    it("should handle ValidationError", function(done) {
+
+        var myRouting = generateNewRouting();
+        myRouting.loadController('dummy', {});
+        myRouting.loadRoute('POST', '/testValidator', 'dummy', 'dummy/testValidator');
+
+        request(app)
+                .post('/testValidator')
+                .send({email: "email"})
+                .expect(function(res) {
+
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "INVALID_PARAMETERS")
+                        return "error key invalid";
+
+                    if (!_.isArray(res.body.details.errors))
+                        return "details.errors must be an array";
+
+
+                    if (res.body.details.errors[0].field != "username")
+                        return "username error not throw";
+
+                    if (res.body.details.errors[0].on != "body")
+                        return "username error not throw on body";
+
+                    if (res.body.statusCode != "400")
+                        return "status code key invalid";
+                })
+                .expect(400, done);
+    });
+
+
+
+
+    it("should handle ValidationError with Nested object", function(done) {
+
+        var myRouting = generateNewRouting();
+        myRouting.loadController('dummy', {});
+        myRouting.loadRoute('POST', '/testValidatorNested', 'dummy', 'dummy/testValidatorNested');
+
+        request(app)
+                .post('/testValidatorNested')
+                .send({contacts: [{"email": "foo", "username": "guillaume"}, {"email": "bar"}, {}]})
+                .expect(function(res) {
+ 
+                    if (!('date' in res.body))
+                        return "missing date key";
+
+                    if (!('details' in res.body))
+                        return "missing details key";
+
+                    if (!('error' in res.body))
+                        return "missing error key";
+
+                    if (res.body.error != "INVALID_PARAMETERS")
+                        return "error key invalid";
+
+                    if (res.body.statusCode != "400")
+                        return "status code key invalid";
+                     
+                    if (!_.isArray(res.body.details.errors))
+                        return "details.errors must be an array";
+
+                    if (res.body.details.errors[0].field != "id")
+                        return "id error not throw";
+
+                    if (!_.isArray(res.body.details.errors[0].error))
+                        return "id error not throw an array errors";
+                    
+                    if (res.body.details.errors[0].on != "body")
+                        return "id error not throw on body";
+
+                    if (res.body.details.errors[1].field != "contacts.0.email")
+                        return "errors email on first contact not throw";
+
+                    if (!_.isArray(res.body.details.errors[1].error))
+                        return "email on first contact error not throw an array errors";
+
+                    if (res.body.details.errors[1].on != "body")
+                        return "email on first contact error not throw on body";
+
+
+                    if (res.body.details.errors[2].field != "contacts.1.username")
+                        return "errors username on second contact not throw";
+
+                    if (!_.isArray(res.body.details.errors[2].error))
+                        return "username on second contact error not throw an array errors";
+
+                    if (res.body.details.errors[2].on != "body")
+                        return "username on second contact error not throw on body";
+
+
+                })
+                .expect(400, done);
+    });
+
 
 
 })

@@ -2,29 +2,31 @@ module.exports = function(app, security, settings, errorHandler) {
     return new Routing(app, security, settings, errorHandler);
 }
 
-var _          = require('lodash'),
-    changeCase = require('change-case');
-    Validation = require('validator-framework'),
-    rfUtils    = require('./utils'),
-    Promise    = require('bluebird');
+var _ = require('lodash'),
+        changeCase = require('change-case');
+Validation = require('validator-framework'),
+        rfUtils = require('./utils'),
+        Promise = require('bluebird');
 
 
 var Routing = function(app, security, settings, errorHandler) {
-    this.app          = app;
-    this.security     = security;
-    this.settings     = _.extend({
+    this.app = app;
+    this.security = security;
+    this.settings = _.extend({
         pathControllers: './controllers'
     }, settings);
-    this.controllers  = {};
+    this.controllers = {};
 
     this.errorHandler = errorHandler;
+
+    this.traceRouteLoaded = [];
 
     return this;
 }
 
 Routing.prototype.loadController = function(name, config) {
 
-    var controller = require(process.cwd() + '/'+ this.settings.pathControllers + '/' + name)(this.app, config);
+    var controller = require(process.cwd() + '/' + this.settings.pathControllers + '/' + name)(this.app, config);
     this.controllers[(name.toLowerCase())] = controller;
 
     return controller;
@@ -32,23 +34,36 @@ Routing.prototype.loadController = function(name, config) {
 
 
 Routing.prototype.loadRoute = function(method, route, security, controller, validator) {
-    console.log("[+] " + method + " " + route + (validator ? " (validation)" : ""));
+
+    this.traceRouteLoaded.push("[+] " + method + " " + route + (validator ? " (validation)" : ""));
 
     var args = [route, this.security.getSecurityMiddleware(security)];
     var m;
-    switch(method.toLowerCase()) {
-        case 'all':     m = this.app.all;    break;
-        case 'get':     m = this.app.get;    break;
-        case 'post':    m = this.app.post;   break;
-        case 'delete':  m = this.app.delete; break;
-        case 'patch':   m = this.app.patch;  break;
-        default:        console.log("Method not allowed: "+method); return;
+    switch (method.toLowerCase()) {
+        case 'all':
+            m = this.app.all;
+            break;
+        case 'get':
+            m = this.app.get;
+            break;
+        case 'post':
+            m = this.app.post;
+            break;
+        case 'delete':
+            m = this.app.delete;
+            break;
+        case 'patch':
+            m = this.app.patch;
+            break;
+        default:
+            console.log("Method not allowed: " + method);
+            return;
     }
 
     if (_.isFunction(controller)) {
         args.push(controller);
     } else {
-        var methods           = this.resolveControllerValidation(controller);
+        var methods = this.resolveControllerValidation(controller);
         var wrapperController = new WrapperController(this.errorHandler, methods);
 
         if (methods.validation) {
@@ -61,11 +76,11 @@ Routing.prototype.loadRoute = function(method, route, security, controller, vali
     return this;
 }
 
-WrapperController = function (errorHandler, methods) {
-   this.methods      = methods;
-   this.errorHandler = errorHandler;
+WrapperController = function(errorHandler, methods) {
+    this.methods = methods;
+    this.errorHandler = errorHandler;
 
-   return this;
+    return this;
 }
 
 WrapperController.prototype.handleRequestValidation = function() {
@@ -83,44 +98,51 @@ WrapperController.prototype.handleRequestValidation = function() {
             var promises = [];
             _.each(validations, function(validation) {
                 var applyOn = validation.on;
-                var groups   = validation.groups;
+                var groups = validation.groups;
                 if (groups && !_.isArray(groups)) {
                     groups = [groups];
                 }
                 var rules = validation.rules;
-                promises.push(self.getPromiseValidation(req[applyOn] || {}, rules, groups));
+                promises.push(self.getPromiseValidation(req[applyOn] || {}, rules, groups, applyOn));
             });
             if (promises.length == 0) {
                 next();
             }
 
             Promise.settle(promises)
-                   .then(function(results) {
-                        console.log(results);
-                        var errors    = [];
+                    .then(function(results) {
+                        var errors = [];
                         _.each(results, function(promiseResult) {
-                            console.log(promiseResult);
                             if (promiseResult.isRejected()) {
                                 errors.push(promiseResult.reason());
                             }
                         });
-                        console.log(errors);
                         if (errors.length > 0) {
-                            return self.sendValidationErrors(req, res, errors, next);
+                            if (self.methods.validationErrorHandler) {
+                                var handlerResult = self.methods['validationErrorHandler'].apply(self.methods['controller'], [errors, req, res]);
+                                return self.errorHandler.handleError(handlerResult, req, res, next);
+                            } else {
+                                return self.sendValidationErrors(req, res, errors, next);
+                            }
                         } else {
                             next();
                         }
-                   });
+                    });
         });
     }
 }
 
-WrapperController.prototype.getPromiseValidation = function(data, rules, groups) {
-    console.log(data);
-    console.log(rules);
-    console.log(groups);
-    return Validation.ObjectValidator(rules)
-                     .validate(data, {groups: groups});
+WrapperController.prototype.getPromiseValidation = function(data, rules, groups, applyOn) {
+
+    return new Promise(function(resolve, reject) {
+        return Validation.ObjectValidator(rules)
+                .validate(data, {groups: groups}).then(function(result) {
+            return result;
+        }).catch(function(error) {
+            error.applyOn = applyOn;
+            return reject(error);
+        })
+    });
 }
 
 WrapperController.prototype.sendValidationErrors = function(req, res, errors, next) {
@@ -146,7 +168,7 @@ WrapperController.prototype.handleRequest = function() {
 
             } else if (typeof handler == "object") {
                 res.json(handler);
-            } else if(typeof handler == "function") {
+            } else if (typeof handler == "function") {
                 return handler(req, res);
             } else {
                 var e = new Error("INTERNAL_ERROR");
@@ -161,29 +183,36 @@ WrapperController.prototype.handleRequest = function() {
 };
 
 Routing.prototype.resolveControllerValidation = function(controllerName) {
-    var parts      = controllerName.split('/');
+    var parts = controllerName.split('/');
     if (parts.length != 2) {
         throw new Error("Error resolving " + controllerName);
         return;
     }
 
-    var controller       = parts[0].toLowerCase();
-    var action           = parts[1];
-    var methodAction     = 'get' + changeCase.upperCaseFirst(action)+ 'Action';
-    var methodValidation = 'get' + changeCase.upperCaseFirst(action)+ 'Validation';
-    var validation       = undefined;
+    var controller = parts[0].toLowerCase();
+    var action = parts[1];
+    var methodAction = 'get' + changeCase.upperCaseFirst(action) + 'Action';
+    var methodValidation = 'get' + changeCase.upperCaseFirst(action) + 'Validation';
+    var methodValidationErrorHandler = 'get' + changeCase.upperCaseFirst(action) + 'ValidationErrorHandler';
+    var validation = undefined;
+    var validationErrorHandler = undefined;
 
     if (!_.has(this.controllers, controller)) {
         throw new Error("Controller not found : " + controller);
     }
 
     if (!_.isFunction(this.controllers[controller][methodAction])) {
-        throw new Error("Method not found : " + methodAction + " on controller "+controller);
+        throw new Error("Method not found : " + methodAction + " on controller " + controller);
     }
 
     if (_.isFunction(this.controllers[controller][methodValidation])) {
         validation = this.controllers[controller][methodValidation];
     }
 
-    return {controller: this.controllers[controller], action: this.controllers[controller][methodAction], validation: validation};
+
+    if (_.isFunction(this.controllers[controller][methodValidationErrorHandler])) {
+        validationErrorHandler = this.controllers[controller][methodValidationErrorHandler];
+    }
+
+    return {controller: this.controllers[controller], action: this.controllers[controller][methodAction], validation: validation, validationErrorHandler: validationErrorHandler};
 }

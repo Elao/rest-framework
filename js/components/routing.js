@@ -35,7 +35,12 @@ Routing.prototype.loadController = function(name, config) {
 
 Routing.prototype.loadRoute = function(method, route, security, controller, validator) {
 
-    this.traceRouteLoaded.push("[+] " + method + " " + route + (validator ? " (validation)" : ""));
+    var debug = "[+] " + method + " " + route + (validator ? " (validation)" : "");
+    this.traceRouteLoaded.push(debug);
+    
+    if (process.argv[2] && process.argv[2] == 'debug-route') {
+        console.log(debug);
+    }
 
     var args = [route, this.security.getSecurityMiddleware(security)];
     var m;

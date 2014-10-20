@@ -28,7 +28,7 @@
     "utils",
     "core"
   ],
-  "main": "./js/main.js",
+  "main": "js/main.js",
   "files": [
     "js/components",
     "js/main.js"

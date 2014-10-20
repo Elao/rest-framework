@@ -38,10 +38,7 @@ Controller.prototype.getTestReturnPromiseAction = function(req, res) {
     });
 }
 
-
-
 Controller.prototype.getTestReturnMissingAction = function(req, res) {
-
 }
 
 Controller.prototype.getReferenceErrorAction = function(req, res) {
@@ -67,7 +64,7 @@ Controller.prototype.getTestValidatorNestedValidation = function() {
                 contacts: {
                     contentObjects: {
                         username: {
-                            required: {value: true, group: ["create"], "message": "username required on body"}
+                            required: {value: true, "message": "username required on body"}
                         },
                         email: {
                             required: true,
@@ -98,20 +95,20 @@ Controller.prototype.getTestValidatorValidation = function() {
     return [{
             rules: {
                 username: {
-                    required: {value: true, group: ["create"], "message": "username required on body"}
+                    required: {value: true, "message": "username required on body"}
                 },
                 user_id: {
-                    required: {value: true, group: ["create"]}
+                    required: {value: true}
                 },
                 email: {
-                    required: {value: true, group: ["create"]},
+                    required: {value: true },
                     isEmail: {value: true},
                     custom: {value: function(e) {
                             return false
                         }, message: 'aie'}
                 },
                 birthday: {
-                    required: {value: true, group: ["create"], "message": "birthday required on body"}
+                    required: {value: true, "message": "birthday required on body"}
                 }
             },
             on: 'body'
@@ -119,7 +116,7 @@ Controller.prototype.getTestValidatorValidation = function() {
         {
             rules: {
                 username: {
-                    required: {value: true, group: ["create"], "message": "username required on params"}
+                    required: {value: true, "message": "username required on params"}
                 },
             },
             on: 'params'
@@ -135,3 +132,114 @@ Controller.prototype.getTestValidatorAction = function(req, res) {
         "ok": "ok"
     };
 }
+
+
+Controller.prototype.getTestValidatorErrorRulesValidation = function() {
+
+    return [{
+            rules: {
+                username: {
+                    wrong: {value: true, "message": "username required on body"},
+                    custom: {
+                        value: function(r) {
+                            return true;
+                        }
+                    },
+                    isString: {
+                        value: true, message: "pas une string !"
+                    }
+                },
+                email: {
+                    required: true,
+                    isEmail: true
+                },
+                optionalField: {
+                    wrong: true
+                }
+            },
+            on: 'body'
+        },
+        {
+            rules: {
+                username: {
+                    wrong: {value: true, "message": "username required on params"},
+                    custom: {
+                        value: function(r) {
+                            return true;
+                        }
+                    },
+                    isString: {
+                        value: true, message: "pas une string ! params"
+                    }
+                }
+            },
+            on: 'params'
+        }
+    ]
+}
+
+
+Controller.prototype.getTestValidatorErrorRulesAction = function(req, res) {
+    var self = this;
+
+    return {
+        "ok": "ok"
+    };
+}
+
+
+Controller.prototype.getTestValidatorSuccessValidation = function() {
+
+    return [{
+            rules: {
+                username: {
+                    required: {value: true, "message": "username required on body"},
+                    custom: {
+                        value: function(r) {
+                            return true;
+                        }
+                    },
+                    isString: {
+                        value: true, message: "pas une string !"
+                    }
+                },
+                email: {
+                    required: true,
+                    isEmail: true
+                },
+                optionalField: {
+                    isEmail: true
+                }
+            },
+            on: 'body'
+        },
+        {
+            rules: {
+                username: {
+                    required: {value: true, "message": "username required on params"},
+                    custom: {
+                        value: function(r) {
+                            return true;
+                        }
+                    },
+                    isString: {
+                        value: true, message: "pas une string ! params"
+                    }
+                }
+            },
+            on: 'params'
+        }
+    ]
+}
+
+
+Controller.prototype.getTestValidatorSuccessAction = function(req, res) {
+    var self = this;
+
+    return {
+        "body": req.validatedValues.body("username"),
+        "params": req.validatedValues.params("username")
+    };
+}
+
+

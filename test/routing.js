@@ -158,7 +158,6 @@ describe('Routing components test ', function() {
                 .expect(500, done);
     });
 
-
     it("should handle ValidationError", function(done) {
 
         var myRouting = generateNewRouting();
@@ -197,9 +196,6 @@ describe('Routing components test ', function() {
                 })
                 .expect(400, done);
     });
-
-
-
 
     it("should handle ValidationError with Nested object", function(done) {
 
@@ -261,6 +257,51 @@ describe('Routing components test ', function() {
 
                 })
                 .expect(400, done);
+    });
+
+    it("should handle validation error when rules are not configured properly", function(done) {
+
+        var myRouting = generateNewRouting();
+        myRouting.loadController('dummy', {});
+        myRouting.loadRoute('POST', '/testValidatorErrorRules/:username', 'dummy', 'dummy/testValidatorErrorRules');
+
+        request(app)
+                .post('/testValidatorErrorRules/guillaume')
+                .send({username: "cool", email: "moi@moi.fr"})
+                .expect(function(res) {
+
+                    if (!('details' in res.body))
+                        return "missing date key";
+
+                    if (res.body.details.errors[0].field != "username")
+                        return "username error not throw on body";
+
+                    if (res.body.error != "INVALID_PARAMETERS")
+                        return "error key invalid";
+
+                })
+                .expect(400, done);
+    });
+
+
+    it("should handle validation success", function(done) {
+
+        var myRouting = generateNewRouting();
+        myRouting.loadController('dummy', {});
+        myRouting.loadRoute('POST', '/testValidatorSuccess/:username', 'dummy', 'dummy/testValidatorSuccess');
+
+        request(app)
+                .post('/testValidatorSuccess/guillaume')
+                .send({username: "cool", email: "moi@moi.fr"})
+                .expect(function(res) {
+ 
+                    if (res.body.params != "guillaume")
+                        return "params key invalid";
+
+                    if (res.body.body != "cool")
+                        return "body key invalid";
+                })
+                .expect(200, done);
     });
 
 

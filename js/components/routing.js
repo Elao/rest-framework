@@ -121,8 +121,76 @@ WrapperController.prototype.handleRequestValidation = function() {
                             if (promiseResult.isRejected()) {
                                 errors.push(promiseResult.reason());
                             }
+
+                            if(promiseResult.isFulfilled()){
+                                var data = promiseResult.value();
+                                if(req.validatedValues == undefined) {
+
+                                    var ValidatedValueHelper = function() {
+                                    }
+
+                                    ValidatedValueHelper.prototype.getFieldValue = function(field, domain) {
+
+                                        var domains = ["_params", "_body", "_query"];
+
+                                        if(domain != undefined && !_.contains(domains, domain)) {
+                                            throw new Error("invalid domain values");
+                                        }
+                                        
+                                        if(domain != undefined) {
+                                            domains = [domain]
+                                        }
+
+                                        for(var i =0; i < domains.length; i++) {
+                                            var domain = domains[i];
+                                            
+                                            var result = _.find(this[domain], function(key) {
+                                                if (key.field === field) {
+                                                    return true;
+                                                }
+                                            });
+
+                                            if (result) {
+                                                return result.value;
+                                            }
+                                        }
+                                    }
+
+                                    ValidatedValueHelper.prototype.set = function (domain, values) {
+                                        var self = this;
+
+                                        switch(domain) {
+                                            case 'params':
+                                            case 'body':
+                                            case 'query':
+                                                self["_"+domain] = values;
+                                                return;
+
+                                            default:
+                                                throw new Error("invalid domain values");
+                                                return;
+                                        }
+                                    }
+
+                                    ValidatedValueHelper.prototype.params = function (key) {
+                                         return this.getFieldValue(key, "_params");
+                                    }
+
+                                    ValidatedValueHelper.prototype.query = function (key) {
+                                         return this.getFieldValue(key, "_query");
+                                    }
+
+                                    ValidatedValueHelper.prototype.body = function (key) {
+                                         return this.getFieldValue(key, "_body");
+                                    }
+                                    
+                                    req.validatedValues = new ValidatedValueHelper();
+                                }
+
+                                req.validatedValues.set(data["applyOn"], data.validatedValue); 
+                            }
                         });
-                        if (errors.length > 0) {
+                        if (errors.length > 0) { 
                             if (self.methods.validationErrorHandler) {
                                 var handlerResult = self.methods['validationErrorHandler'].apply(self.methods['controller'], [errors, req, res]);
                                 return self.errorHandler.handleError(handlerResult, req, res, next);
@@ -142,7 +210,7 @@ WrapperController.prototype.getPromiseValidation = function(data, rules, groups,
     return new Promise(function(resolve, reject) {
         return Validation.ObjectValidator(rules)
                 .validate(data, {groups: groups}).then(function(result) {
-            return result;
+            return resolve({validatedValue: result, applyOn: applyOn});
         }).catch(function(error) {
             error.applyOn = applyOn;
             return reject(error);

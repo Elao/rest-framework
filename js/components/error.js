@@ -139,15 +139,22 @@ handler.prototype.ValidationParametersError = function(domainsErrors)
     var errorOnField = [];
     _.each(domainsErrors, function(domain) {
 
-
-        var flatError = domain.flat();
-        _.forIn(flatError, function(value, key) {
+        try {
+            var flatError = domain.flat();
+            _.forIn(flatError, function(value, key) {
+                errorOnField.push({
+                    "field": key,
+                    "error": value,
+                    "on": domain.applyOn
+                });
+            });
+        } catch (rulesError) {
             errorOnField.push({
-                "field": key,
-                "error": value,
+                "field": rulesError.path,
+                "error": rulesError.message,
                 "on": domain.applyOn
             });
-        });
+        }
 
         // messages.push(JSON.stringify(e.flat()));
     });

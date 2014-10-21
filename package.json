@@ -1,7 +1,7 @@
 {
   "name": "rest-framework",
   "description": "Rest API Framework",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "licenses": [
     {
       "type": "MIT",

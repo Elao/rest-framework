@@ -6,6 +6,7 @@ var _ = require('lodash'),
         changeCase = require('change-case');
 Validation = require('validator-framework'),
         rfUtils = require('./utils'),
+        rfErrors = require('./error'),
         Promise = require('bluebird');
 
 
@@ -16,6 +17,12 @@ var Routing = function(app, security, settings, errorHandler) {
         pathControllers: './controllers'
     }, settings);
     this.controllers = {};
+
+    if(errorHandler == null) {
+        errorHandler = rfErrors({
+            debug: settings != undefined && settings.debug != undefined ? settings.debug : false
+        });
+    }
 
     this.errorHandler = errorHandler;
 
@@ -61,7 +68,12 @@ Routing.prototype.loadRoute = function(method, route, security, controller, vali
             m = this.app.patch;
             break;
         default:
-            console.log("Method not allowed: " + method);
+            debug = "Method not allowed: " + method;
+            this.traceRouteLoaded.push(debug);
+            if (process.argv[2] && process.argv[2] == 'debug-route') {
+                console.log(debug);
+            }
+            
             return;
     }
 
@@ -243,6 +255,8 @@ WrapperController.prototype.handleRequest = function() {
                 res.json(handler);
             } else if (typeof handler == "function") {
                 return handler(req, res);
+            } else if (typeof handler == "string") {
+                return res.json(handler);
             } else {
                 var e = new Error("INTERNAL_ERROR");
                 throw e;

@@ -63,8 +63,7 @@ Security.prototype.getSecurityMiddleware = function(rule) {
 
                                 req.user = JSON.parse(response.body);
                                 var securityCallbackResult = true;
-                                if (securityCallback != undefined) {
-                                    console.log(securityCallback);
+                                if (securityCallback != undefined) { 
                                     securityCallbackResult = securityCallback(req.user)
 
                                     if (securityCallbackResult) {
@@ -109,7 +108,6 @@ Security.prototype.getSecurityMiddleware = function(rule) {
         } else if (_.contains(methods, 'http')) {
             var reg = new RegExp("^basic ");
             var authorization = req.headers.authorization;
-            console.log(authorization);
             if (authorization && reg.test(authorization.toLowerCase())) {
                 var auth = basic_auth.basic({
                     realm: self.settings.basic.realm

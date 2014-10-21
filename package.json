@@ -2,6 +2,25 @@
   "name": "rest-framework",
   "description": "Rest API Framework",
   "version": "0.1.0",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://raw.githubusercontent.com/Elao/rest-framework/master/LICENSE"
+    }
+  ],
+  "homepage": "https://github.com/Elao/rest-framework",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Elao/rest-framework.git"
+  },
+  "bugs": {
+    "url": "http://github.com/Elao/rest-framework/issues"
+  },
+  "author": {
+    "name": "Elao",
+    "email": "contact@elao.com",
+    "url": "http://www.elao.com/"
+  },
   "keywords": [
     "rest",
     "api",
@@ -9,17 +28,11 @@
     "utils",
     "core"
   ],
-  "homepage": "https://github.com/Elao/rest-framework",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Elao/rest-framework.git"
-  },
-  "license": "MIT",
-  "author": {
-    "name": "Elao",
-    "email": "contact@elao.com",
-    "url": "http://github.com/elao/"
-  },
+  "main": "js/main.js",
+  "files": [
+    "js/components",
+    "js/main.js"
+  ],
   "dependencies": {
     "bluebird": "^2.0",
     "http-auth": "^2.1.9",
@@ -28,11 +41,6 @@
     "change-case": "^2.1.5",
     "validator-framework": "^0.1.0"
   },
-  "main": "./js/main.js",
-  "files": [
-    "js/components",
-    "js/main.js"
-  ],
   "devDependencies": {
     "mocha": "^1.21.4",
     "chai": "^1.9.1",

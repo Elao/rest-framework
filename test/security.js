@@ -113,7 +113,7 @@ function generateNewRouting() {
                 }
             },
     {
-        pathControllers: 'test/routing'
+        pathControllers: process.cwd() +'/test/routing'
     },
     errorHandler
             );

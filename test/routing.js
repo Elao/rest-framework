@@ -4,7 +4,6 @@ chai.use(chaiAsPromised);
 
 var Routing = require("../js/components/routing.js")
 var Error = require("../js/components/error.js")
-var Security = require("../js/components/security.js")
 
 var should = require('chai').should(),
         expect = require('chai').expect,
@@ -26,11 +25,13 @@ function generateNewRouting() {
     var errorHandler = Error({debug: false});
     var myRouting = Routing(
             app,
-            Security({}, {
+            {
                 rules: {
-                    'dummy': {}
+                    dummy: {
+                        methods: ['guest']
+                    }
                 }
-            }),
+            },
             {
                 pathControllers: 'test/routing'
             },
@@ -41,12 +42,38 @@ function generateNewRouting() {
 
 describe('Routing components test ', function() {
 
+    var myRouting = generateNewRouting();
+    myRouting.loadController('dummy', {});
+    myRouting.loadRoute('GET', '/test/objectJson', 'dummy', 'dummy/testReturnObject');
+    myRouting.loadRoute('GET', '/test/function', 'dummy', 'dummy/testReturnFunction');
+    myRouting.loadRoute('GET', '/test/promise', 'dummy', 'dummy/testReturnPromise');
+    myRouting.loadRoute('GET', '/test/missing', 'dummy', 'dummy/testReturnMissing');
+    myRouting.loadRoute('GET', '/referenceError', 'dummy', 'dummy/referenceError');
+    myRouting.loadRoute('POST', '/testValidator', 'dummy', 'dummy/testValidator');
+    myRouting.loadRoute('POST', '/testValidatorNested', 'dummy', 'dummy/testValidatorNested');
+    myRouting.loadRoute('POST', '/testValidatorErrorRules/:username', 'dummy', 'dummy/testValidatorErrorRules');
+    myRouting.loadRoute('POST', '/testValidatorSuccess/:username', 'dummy', 'dummy/testValidatorSuccess');
 
-    it("should work when controller return object json ", function(done) {
 
-        var myRouting = generateNewRouting();
+    it("should not load route with an custom HTTP VERB", function() {
+
+        var e = myRouting.loadRoute('TESTER', '/objectJson', 'dummy', 'dummy/objectJson');
+        return assert.isUndefined(e, "why custom HTTP VERB work now ?")
+    });
+
+    it("should handle error when load wrong controller method", function(done) {
+
         myRouting.loadController('dummy', {});
-        myRouting.loadRoute('GET', '/test/objectJson', 'dummy', 'dummy/testReturnObject');
+        try {
+            myRouting.loadRoute('GET', '/azerty', 'dummy', 'dummy/azerty');
+            done(new Error('must throw an error. Azerty is not defined for controller'))
+        }
+        catch (e) {
+            done();
+        }
+    });
+    
+    it("should work when controller return object json ", function(done) {
 
         request(app)
                 .get('/test/objectJson')
@@ -55,12 +82,7 @@ describe('Routing components test ', function() {
     });
 
 
-
     it("should handle when controller return function", function(done) {
-
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        myRouting.loadRoute('GET', '/test/function', 'dummy', 'dummy/testReturnFunction');
 
         request(app)
                 .get('/test/function')
@@ -68,12 +90,7 @@ describe('Routing components test ', function() {
                 .expect(200, done);
     });
 
-
     it("should handle when controller return Promise", function(done) {
-
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        myRouting.loadRoute('GET', '/test/promise', 'dummy', 'dummy/testReturnPromise');
 
         request(app)
                 .get('/test/function')
@@ -82,10 +99,6 @@ describe('Routing components test ', function() {
     });
 
     it("should throw error when controller forgot return result", function(done) {
-
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        myRouting.loadRoute('GET', '/test/missing', 'dummy', 'dummy/testReturnMissing');
 
         request(app)
                 .get('/test/missing')
@@ -109,32 +122,7 @@ describe('Routing components test ', function() {
                 .expect(500, done);
     });
 
-    it("should not load route with an custom HTTP VERB", function() {
-
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        var e = myRouting.loadRoute('TESTER', '/objectJson', 'dummy', 'dummy/objectJson');
-        return assert.isUndefined(e, "why custom HTTP VERB work now ?")
-    });
-
-    it("should handle error when load wrong controller method", function(done) {
-
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        try {
-            myRouting.loadRoute('GET', '/azerty', 'dummy', 'dummy/azerty');
-            done(new Error('must throw an error. Azerty is not defined for controller'))
-        }
-        catch (e) {
-            done();
-        }
-    });
-
     it("should handle ReferenceError", function(done) {
-
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        myRouting.loadRoute('GET', '/referenceError', 'dummy', 'dummy/referenceError');
 
         request(app)
                 .get('/referenceError')
@@ -159,10 +147,6 @@ describe('Routing components test ', function() {
     });
 
     it("should handle ValidationError", function(done) {
-
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        myRouting.loadRoute('POST', '/testValidator', 'dummy', 'dummy/testValidator');
 
         request(app)
                 .post('/testValidator')
@@ -199,15 +183,11 @@ describe('Routing components test ', function() {
 
     it("should handle ValidationError with Nested object", function(done) {
 
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        myRouting.loadRoute('POST', '/testValidatorNested', 'dummy', 'dummy/testValidatorNested');
-
         request(app)
                 .post('/testValidatorNested')
                 .send({contacts: [{"email": "foo", "username": "guillaume"}, {"email": "bar"}, {}]})
                 .expect(function(res) {
- 
+
                     if (!('date' in res.body))
                         return "missing date key";
 
@@ -222,7 +202,7 @@ describe('Routing components test ', function() {
 
                     if (res.body.statusCode != "400")
                         return "status code key invalid";
-                     
+
                     if (!_.isArray(res.body.details.errors))
                         return "details.errors must be an array";
 
@@ -231,7 +211,7 @@ describe('Routing components test ', function() {
 
                     if (!_.isArray(res.body.details.errors[0].error))
                         return "id error not throw an array errors";
-                    
+
                     if (res.body.details.errors[0].on != "body")
                         return "id error not throw on body";
 
@@ -261,10 +241,6 @@ describe('Routing components test ', function() {
 
     it("should handle validation error when rules are not configured properly", function(done) {
 
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        myRouting.loadRoute('POST', '/testValidatorErrorRules/:username', 'dummy', 'dummy/testValidatorErrorRules');
-
         request(app)
                 .post('/testValidatorErrorRules/guillaume')
                 .send({username: "cool", email: "moi@moi.fr"})
@@ -286,15 +262,11 @@ describe('Routing components test ', function() {
 
     it("should handle validation success", function(done) {
 
-        var myRouting = generateNewRouting();
-        myRouting.loadController('dummy', {});
-        myRouting.loadRoute('POST', '/testValidatorSuccess/:username', 'dummy', 'dummy/testValidatorSuccess');
-
         request(app)
                 .post('/testValidatorSuccess/guillaume')
                 .send({username: "cool", email: "moi@moi.fr"})
                 .expect(function(res) {
- 
+
                     if (res.body.params != "guillaume")
                         return "params key invalid";
 

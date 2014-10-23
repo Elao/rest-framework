@@ -16,7 +16,7 @@ var Routing = function(app, security, settings, errorHandler) {
     this.app = app;
     this.security = security;
     this.settings = _.extend({
-        pathControllers: './controllers'
+        pathControllers: process.cwd() + './controllers'
     }, settings);
     this.controllers = {};
 
@@ -68,7 +68,7 @@ var Routing = function(app, security, settings, errorHandler) {
 
 Routing.prototype.loadController = function(name, config) {
 
-    var controller = require(process.cwd() + '/' + this.settings.pathControllers + '/' + name)(this.app, config);
+    var controller = require(this.settings.pathControllers + '/' + name)(this.app, config);
     this.controllers[(name.toLowerCase())] = controller;
 
     return controller;

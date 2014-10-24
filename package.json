@@ -1,7 +1,7 @@
 {
   "name": "rest-framework",
   "description": "Rest API Framework",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "licenses": [
     {
       "type": "MIT",
@@ -40,7 +40,7 @@
     "lodash": "^2.4.1",
     "change-case": "^2.1.5",
     "validator-framework": "^0.2.0",
-    "security-framework" : "^0.1.0"
+    "security-framework" : "^0.1.1"
   },
   "devDependencies": {
     "mocha": "^1.21.4",

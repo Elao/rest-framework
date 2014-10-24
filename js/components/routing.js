@@ -9,6 +9,8 @@ Validation = require('validator-framework'),
         rfErrors = require('./error'),
         Promise = require('bluebird');
 
+        securityFramework = require('security-framework');
+
 
 var Routing = function(app, security, settings, errorHandler) {
     this.app = app;
@@ -24,8 +26,41 @@ var Routing = function(app, security, settings, errorHandler) {
         });
     }
 
-    this.errorHandler = errorHandler;
 
+    defaultSecurity = securityFramework.Security({
+        methods: {
+            oauth: {
+                config: {
+                    endpoint: "http://127.0.0.1:3000/me"
+                }
+            },
+            http: {
+                config: {
+                    realm: 'Evibe Private Api',
+                    user: 'admin',
+                    password: 'private'
+                }
+            }
+        },
+        rules: {
+            guest: {
+                methods: ['guest']
+            },
+            user: {
+                methods: ['oauth', 'http']
+            }
+        }
+    })
+
+    this.security = defaultSecurity;
+
+    if(security != null) {
+        this.security = _.merge(this.security, security);
+        this.security.registerMiddlewaresFromPath(security.pathMiddlewares);
+        this.security.validate();
+    }
+
+    this.errorHandler = errorHandler;
     this.traceRouteLoaded = [];
 
     return this;

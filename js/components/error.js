@@ -66,7 +66,7 @@ handler.prototype.handleError = function(e, req, res, next) {
         return res.status(500).json(self.formatError(500, rfUtils.errorsToString(e), e.details != undefined ? e.details : ""));
     }
 
-    return res.status(400).json(self.formatError(500, e, ""));
+    return res.status(500).json(self.formatError(500, e, ""));
 }
 
 handler.prototype.NotFoundError = function(message, type, id)

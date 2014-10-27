@@ -16,7 +16,7 @@ var Routing = function(app, security, settings, errorHandler) {
     this.app = app;
     this.security = security;
     this.settings = _.extend({
-        pathControllers: process.cwd() + './controllers'
+        pathControllers: process.cwd() + '/controllers'
     }, settings);
     this.controllers = {};
 

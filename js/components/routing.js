@@ -280,7 +280,20 @@ WrapperController.prototype.handleRequest = function() {
             if (rfUtils.isPromise(handler)) {
 
                 handler.then(function(jsonResult) {
-                    res.json(jsonResult);
+ 
+                    if (typeof jsonResult == "object") {
+                        res.json(jsonResult);
+                    } else if (typeof jsonResult == "string") {
+                        res.json(jsonResult);
+                    }
+                    else if (typeof jsonResult == "function") {
+                        return jsonResult(req, res);
+                    } else {
+                        var e = new Error("INTERNAL_ERROR");
+                        e.details = 'your promise must return an function(req, res) or object/string';
+                        throw e;
+                    }
+
                 }).catch(function(e) {
                     // promise failed
                     return self.errorHandler.handleError(e, req, res, next);

@@ -179,6 +179,10 @@ App.js
     // create an GET route on "localhost/users" which is behind an security rule named "me" and the name of action are  users" located in user.js file
     Routing.loadRoute('GET', '/users', 'me', 'user/users');
     
+> Notice that you don't need to create an security-framework object but only the configuration for it.
+> 
+> Notice that errorComponent parameter is optional, if you don't want use ours you juste have to put an object which can response to handleError(error, req, res, next)
+
 UserController must be a file like
 	
 	var RF = require('rest-framework');
@@ -211,15 +215,15 @@ UserController must be a file like
 	
 Action method can return many thing like
 
-  - Promise: when promise finish the resolve data returned are display with req.json(data)
+  - Promise: 
+    - if your promise return an object or string, your data are display with req.json(data)
+    - if your promise return an function(req, res) then your function will be call and it's your responsibility to display anything.
+    - if your promise return an empty result, then RF will trigger an INTERNAL_ERROR.
   - plain object: direct to req.json
   - function(req, res): it's your responsibility to display anything
   - string: direct to req.json
 
-Anything else will throw an 500 error.
-
-> Notice that you don't need to create an security-framework object but only the configuration for it.
-> Notice that errorComponent parameter is optional, if you don't want use ours you juste have to put an object which can response to handleError(error, req, res, next)
+Anything else will throw an 500 error INTERNAL_ERROR
 
 #### Minimal configuration
 

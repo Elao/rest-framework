@@ -38,6 +38,58 @@ Controller.prototype.getTestReturnPromiseAction = function(req, res) {
     });
 }
 
+
+Controller.prototype.getTestReturnPromiseWhichReturnFunctionAction = function(req, res) {
+
+    return new Promise(function(resolve, reject) {
+
+        var fn = function(req, res) {
+            res.json("amazing")
+        }
+
+        return resolve(fn)
+    });
+}
+
+Controller.prototype.getTestReturnPromiseWhichReturnPromiseEmptyAction = function(req, res) {
+
+    return new Promise(function(resolve, reject) {
+
+        var fn = new Promise(function(resolve, reject){
+           return resolve();
+        });
+
+        return resolve(fn)
+    });
+}
+
+Controller.prototype.getTestReturnPromiseWhichReturnPromiseObjectAction = function(req, res) {
+
+    return new Promise(function(resolve, reject) {
+
+        var fn = new Promise(function(resolve, reject){
+           return resolve("amazing");
+        });
+
+        return resolve(fn)
+    });
+}
+
+Controller.prototype.getTestReturnPromiseWhichReturnPromiseWichReturnPromiseAction = function(req, res) {
+
+    return new Promise(function(resolve, reject) {
+
+        var fn = new Promise(function(resolve, reject){
+           return resolve(new Promise(function(resolve, reject){
+               return resolve("inception")
+           }));
+        });
+
+        return resolve(fn)
+    });
+}
+
+
 Controller.prototype.getTestReturnMissingAction = function(req, res) {
 }
 

@@ -47,6 +47,10 @@ describe('Routing components test ', function() {
     myRouting.loadRoute('GET', '/test/objectJson', 'dummy', 'dummy/testReturnObject');
     myRouting.loadRoute('GET', '/test/function', 'dummy', 'dummy/testReturnFunction');
     myRouting.loadRoute('GET', '/test/promise', 'dummy', 'dummy/testReturnPromise');
+    myRouting.loadRoute('GET', '/test/promise_function', 'dummy', 'dummy/testReturnPromiseWhichReturnFunction');
+    myRouting.loadRoute('GET', '/test/promise_of_promise', 'dummy', 'dummy/testReturnPromiseWhichReturnPromiseEmpty');
+    myRouting.loadRoute('GET', '/test/promise_of_promise_object', 'dummy', 'dummy/testReturnPromiseWhichReturnPromiseObject');
+    myRouting.loadRoute('GET', '/test/promise_of_promise_of_promise', 'dummy', 'dummy/testReturnPromiseWhichReturnPromiseWichReturnPromise');
     myRouting.loadRoute('GET', '/test/missing', 'dummy', 'dummy/testReturnMissing');
     myRouting.loadRoute('GET', '/referenceError', 'dummy', 'dummy/referenceError');
     myRouting.loadRoute('POST', '/testValidator', 'dummy', 'dummy/testValidator');
@@ -93,8 +97,39 @@ describe('Routing components test ', function() {
     it("should handle when controller return Promise", function(done) {
 
         request(app)
-                .get('/test/function')
+                .get('/test/promise')
                 .expect('{\n  "ok": "ok"\n}')
+                .expect(200, done);
+    });
+    
+    it("should handle when controller return Promise which return function", function(done) {
+
+        request(app)
+                .get('/test/promise_function')
+                .expect('"amazing"')
+                .expect(200, done);
+    });
+
+    it("should reject when controller return Promise which return Promise with no result", function(done) {
+
+        request(app)
+                .get('/test/promise_of_promise')
+                .expect(500, done);
+    });
+
+    it("should handle when controller return Promise which return Promise object/string result", function(done) {
+
+        request(app)
+                .get('/test/promise_of_promise_object')
+                .expect('"amazing"')
+                .expect(200, done);
+    });
+
+    it("should handle when controller return Promise which return Promise with return Promise", function(done) {
+
+        request(app)
+                .get('/test/promise_of_promise_of_promise')
+                .expect('"inception"')
                 .expect(200, done);
     });
 

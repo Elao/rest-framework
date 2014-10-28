@@ -17,7 +17,9 @@ var express = require('express');
 var request = require('supertest');
 
 var app = express();
-app.use(express.bodyParser());
+bodyParser = require('body-parser')
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
 
 function generateNewRouting() {
 
@@ -141,8 +143,6 @@ describe('Security components test ', function() {
 
         request(app)
                 .get('/test/routepublic')
-                .expect(function(res) {
-                })
                 .expect(200, done);
     });
 

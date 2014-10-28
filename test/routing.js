@@ -17,7 +17,10 @@ var express = require('express');
 var request = require('supertest');
 
 var app = express();
-app.use(express.bodyParser());
+
+bodyParser = require('body-parser')
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
 
 function generateNewRouting() {
 
@@ -81,7 +84,7 @@ describe('Routing components test ', function() {
 
         request(app)
                 .get('/test/objectJson')
-                .expect('{\n  "ok": "ok"\n}')
+                .expect('{"ok":"ok"}')
                 .expect(200, done);
     });
 
@@ -90,7 +93,7 @@ describe('Routing components test ', function() {
 
         request(app)
                 .get('/test/function')
-                .expect('{\n  "ok": "ok"\n}')
+                .expect('{"ok":"ok"}')
                 .expect(200, done);
     });
 
@@ -98,7 +101,7 @@ describe('Routing components test ', function() {
 
         request(app)
                 .get('/test/promise')
-                .expect('{\n  "ok": "ok"\n}')
+                .expect('{"ok":"ok"}')
                 .expect(200, done);
     });
     

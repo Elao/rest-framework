@@ -282,9 +282,9 @@ WrapperController.prototype.handleRequest = function() {
                 handler.then(function(jsonResult) {
  
                     if (typeof jsonResult == "object") {
-                        res.json(jsonResult);
+                        res.status(200).json(jsonResult);
                     } else if (typeof jsonResult == "string") {
-                        res.json(jsonResult);
+                        res.status(200).json(jsonResult);
                     }
                     else if (typeof jsonResult == "function") {
                         return jsonResult(req, res);
@@ -300,7 +300,7 @@ WrapperController.prototype.handleRequest = function() {
                 });
 
             } else if (typeof handler == "object") {
-                res.json(handler);
+                res.status(200).json(handler);
             } else if (typeof handler == "function") {
                 return handler(req, res);
             } else if (typeof handler == "string") {
